@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<libraries>
+    <library>
+        <location>mod/logic/Boolet</location>
+        <name>Boolet</name>
+        <version>0.1.0</version>
+        <license>Expat</license>
+        <licenseversion>1.0</licenseversion>
+    </library>
+</libraries>
