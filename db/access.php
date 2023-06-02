@@ -17,48 +17,33 @@
 /**
  * Capability definitions for this module.
  *
- * @package   mod_assign
+ * @package   mod_logic
  * @copyright   2023 Dan Nessett <dnessett@yahoo.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-declare(strict_types=1);
-
-namespace D3lph1\Boollet;
-
-require(__DIR__ . '/vendor/autoload.php');
-
-use D3lph1\Boollet\Parser\{Lexer, Reader\StringInputReader, ShuntingYardParser};
-use D3lph1\Boollet\TruthTable;
-use Symfony\Component\VarDumper\VarDumper;
-
-$lexer = Lexer::default();
-$input = new StringInputReader('X ⊕ Y → (X ⋀ Z)');
-$parser = new ShuntingYardParser($lexer);
-
-$expr = $parser->parse($input);
-
-$table = TruthTable::tabulate($expr);
-$table->setLabel('');
-
-echo $table;
-
-$pre = "<pre>";
-$slashpre = "</pre>";
-$columnated = $pre . $table . $slashpre;
-
-echo $columnated;
-
-dd($table->getRows(), $table->getValues());
-
-$boolinput = $table->getRows();
-$booloutput = $table->getValues();
-
-foreach ($boolinput as &$inputarray) {
-    foreach ($booloutput as &$functionvalue) {
-        array_push($inputarray, $functionvalue);
-        print($inputarray);
-    }
-}
+$capabilities = [
+    'mod/[modname]:addinstance' => [
+        'riskbitmask' => RISK_XSS,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+        'clonepermissionsfrom' => 'moodle/course:manageactivities',
+    ],
+    'mod/[modname]:view' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'guest' => CAP_ALLOW,
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+];

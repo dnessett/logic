@@ -81,7 +81,7 @@ foreach ($logics as $logic) {
             format_string($logic->name, true));
     }
 
-    if ($course->format == 'weeks' or $course->format == 'topics') {
+    if ($course->format == 'weeks' || $course->format == 'topics') {
         $table->data[] = array($logic->section, $link);
     } else {
         $table->data[] = array($link);
