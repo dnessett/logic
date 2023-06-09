@@ -25,4 +25,15 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['logicfieldset'] = 'Logic Fieldset';
+$string['logicname'] = 'Logic';
+$string['logicsettings'] = 'Logic Settings';
+$string['logic:addinstance'] = 'Add a new logic tool use';
+$string['logic:view'] = 'View logic information';
+$string['logic:attempt'] = 'Attempt logic tool use';
+$string['logic:reviewmyattempts'] = 'Review your own attempts';
+$string['logic:preview'] = 'Preview logic tool';
+$string['modulename'] = 'Logic';
+$string['modulenameplural'] = 'Logic Tools';
+$string['pluginadministration'] = 'Logic administration';
 $string['pluginname'] = 'Logic';

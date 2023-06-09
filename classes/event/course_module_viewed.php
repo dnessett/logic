@@ -32,7 +32,7 @@ defined('MOODLE_INTERNAL') || die();
  *
  * @package    mod_data
  * @since      Moodle 2.7
- * @copyright   2023 Dan Nessett <dnessett@yahoo.com>
+ * @copyright  2023 Dan Nessett <dnessett@yahoo.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class course_module_viewed extends \core\event\course_module_viewed {

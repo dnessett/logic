@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-    'mod/[modname]:addinstance' => [
+    'mod/logic:addinstance' => [
         'riskbitmask' => RISK_XSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
@@ -33,9 +33,10 @@ $capabilities = [
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
         ],
-        'clonepermissionsfrom' => 'moodle/course:manageactivities',
+        'clonepermissionsfrom' => 'moodle/course:manageactivities'
     ],
-    'mod/[modname]:view' => [
+    
+    'mod/logic:view' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => [
@@ -46,4 +47,39 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ],
     ],
+    
+    // Ability to use the tool as a 'student'.
+    
+    'mod/logic:attempt' => [
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'student' => CAP_ALLOW
+        ]
+    ],
+    
+    // Ability for a 'Student' to review their previous attempts. Review by
+    // 'Teachers' is controlled by mod/logic:viewreports.
+    
+    'mod/logic:reviewmyattempts' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'student' => CAP_ALLOW
+        ],
+        'clonepermissionsfrom' => 'moodle/logic:attempt'
+    ],
+    
+    // Preview the tool presentation.
+    
+    'mod/logic:preview' => [
+        'captype' => 'write', // Only just a write.
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => [
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ]
+    ]
 ];

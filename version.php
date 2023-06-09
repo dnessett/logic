@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_logic';
-$plugin->release = '0.1.0';
-$plugin->version = 2023010700;
+$plugin->release = '0.1.1';
+$plugin->version = 2023060900;
 $plugin->requires = 2022041900;
 $plugin->maturity = MATURITY_ALPHA;
