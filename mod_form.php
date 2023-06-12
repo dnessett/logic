@@ -65,11 +65,19 @@ class mod_logic_mod_form extends moodleform_mod {
         } else {
             $this->add_intro_editor();
         }
-
-        // Adding the rest of mod_logic settings, spreading all them into this fieldset
-        // ... or adding more fieldsets ('header' elements) if needed for better logic.
-        $mform->addElement('static', 'label1', 'logicsettings', get_string('logicsettings', 'mod_logic'));
-        $mform->addElement('header', 'logicfieldset', get_string('logicfieldset', 'mod_logic'));
+        
+        // Select Logic Tool
+        
+		$tools = array();
+        $tools['truthtable'] = get_string('truthtable', 'mod_logic');
+        $tools['truthtree'] = get_string('truthtree', 'mod_logic');
+		$tools['derivation'] = get_string('derivation', 'mod_logic');      
+        
+        $mform->addElement('select', 'logictool', get_string('logictool', 'logic'), $tools);
+        
+        // Text area for logic expressions
+        
+        $mform->addElement('textarea', 'logicexpressions', get_string("logicexpressions", "logic"), 'wrap="virtual" tcols="50"');
 
         // Add standard elements.
         $this->standard_coursemodule_elements();
@@ -77,4 +85,4 @@ class mod_logic_mod_form extends moodleform_mod {
         // Add standard buttons.
         $this->add_action_buttons();
     }
-}
+}  
