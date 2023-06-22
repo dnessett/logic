@@ -28,37 +28,21 @@ declare(strict_types=1);
 
 namespace D3lph1\Boollet;
 
-require(__DIR__ . '/vendor/autoload.php');
+require(__DIR__ . '../../vendor/autoload.php');
 
 use D3lph1\Boollet\Parser\{Lexer, Reader\StringInputReader, ShuntingYardParser};
 use D3lph1\Boollet\TruthTable;
 use Symfony\Component\VarDumper\VarDumper;
 
-$lexer = Lexer::default();
-$input = new StringInputReader('x ⊕ y → (x ⋀ z)');
-$parser = new ShuntingYardParser($lexer);
+function compute_correct_ttable_values($expression) {
+	$lexer = Lexer::default();
+	$input = new StringInputReader($expression);
+	$parser = new ShuntingYardParser($lexer);
 
-$expr = $parser->parse($input);
+	$expr = $parser->parse($input);
 
-$table = TruthTable::tabulate($expr);
-$table->setLabel('');
-
-echo $table;
-
-$pre = "<pre>";
-$slashpre = "</pre>";
-$columnated = $pre . $table . $slashpre;
-
-echo $columnated;
-
-dd($table->getRows(), $table->getValues());
-
-$boolinput = $table->getRows();
-$booloutput = $table->getValues();
-
-foreach ($boolinput as &$inputarray) {
-    foreach ($booloutput as &$functionvalue) {
-        array_push($inputarray, $functionvalue);
-        print($inputarray);
-    }
+	$table = TruthTable::tabulate($expr);
+		
+	return $table;
+	
 }

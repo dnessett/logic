@@ -6,19 +6,57 @@
   <TABLES>
     <TABLE NAME="logic" COMMENT="Stores the logic activity module instances.">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="ID of the course module."/>
         <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the course this activity is part of."/>
         <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="The name of the activity module instance"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of when the instance was added to the course."/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of when the instance was last modified."/>
         <FIELD NAME="intro" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Activity description."/>
-        <FIELD NAME="introformat" TYPE="int" LENGTH="4" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The format of the intro field."/>
         <FIELD NAME="logicexpressions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The logic expressions field."/>
-        <FIELD NAME="logictool" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The logic tool field."/>
+        <FIELD NAME="logictool" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The logic tool for the module activity."/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
         <KEY NAME="fk_course" TYPE="foreign" FIELDS="course" REFTABLE="course" REFFIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="logic_problem_bank" COMMENT="Stores the data associated with the problem bank.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="ID of the logic problem bank."/>
+        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the course this activity is part of."/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The course module instance id."/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of when the instance was added to the course."/>
+        <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of when the instance was last modified."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Identity of user working on the problembank."/>
+        <FIELD NAME="logictool" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The logic tool for the problem bank."/>
+        <FIELD NAME="problemidstring" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A CSV string indicating which problems are in the problem bank."/>
+        <FIELD NAME="submitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the student has submitted the problem bank for grading."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+	</TABLE>
+    <TABLE NAME="logic_problem" COMMENT="Stores the data associated with the problem.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="ID of the logic problem."/>
+        <FIELD NAME="atomicvariables" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The string containing the atomic variables. Note: their order is important for attempt:atomicvariablesint."/>
+        <FIELD NAME="logicexpressions" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The concatenated logicexpressions associated with the problem."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="logic_ttable_attempt" COMMENT="Stores the data associated with an attempt to solve a truth table problem.">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="ID of the truth table problem."/>
+        <FIELD NAME="problemid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The id of the problem being attempted."/>
+        <FIELD NAME="problemexpression" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The concatenated logicexpression under evaluation."/>
+        <FIELD NAME="atomicvariablesvalue" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The string representing the values of the atomic variables."/>
+        <FIELD NAME="inputvalue" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" COMMENT="The value input for the logic expression for the given interpretation. -1 => noinput; 0 => F; 1 => T."/>
+        <FIELD NAME="correctvalue" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" COMMENT="The correct value of the logic expression evaluated for the given interpretation."/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
   </TABLES>

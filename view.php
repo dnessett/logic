@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Prints an instance of mod_logic.
+ * Creates the tables for a mod_logic problem bank and prints the attempts to solve it.
  *
  * @package     mod_logic
  * @copyright   2023 Dan Nessett <dnessett@yahoo.com>
@@ -26,6 +26,8 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir.'/gradelib.php');
 require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/course/format/lib.php');
+
+use \mod_logic\local\logictoolclasses\logic_table_data;
 
 $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or ...
 $l = optional_param('l',  0, PARAM_INT);  // Module instance ID.
@@ -61,7 +63,6 @@ require_capability('mod/logic:view', $context);
 
 $canattempt = has_capability('mod/logic:attempt', $context);
 $canreviewmine = has_capability('mod/logic:reviewmyattempts', $context);
-$canpreview = has_capability('mod/logic:preview', $context);
 
 // Trigger course_module_viewed event and completion.
 
@@ -72,6 +73,22 @@ $title = $course->shortname . ': ' . format_string($logic->name);
 $PAGE->set_title($title);
 $PAGE->set_heading(format_string($course->fullname));
 
+// Create or use the logic, problem bank, problem set, problem and attempt db tables.
+// Return an instance of logic_table_data, which encapsulates the classes associated
+// with the problem bank tables.
+
+$table_data = new logic_table_data($logic, $course, $cm);
+
 echo $OUTPUT->header();
 
+// Use the table_data_data instance to output the HTML for the view page.
+
+$this->outputhtml($table_data);
+
 echo $OUTPUT->footer();
+
+function outputhtml($table_data) {
+
+return;
+
+}

@@ -1,0 +1,71 @@
+global $USER;
+
+if ($userid === null) {
+    $userid = $USER->id;
+}
+
+$DB->set_field("course_sections", "sequence", $newsequence, array("id" => $section->id));
+$DB->set_field('course_modules', 'section', $section->id, array('id' => $cmid));
+
+foreach ($sections as $sectionid => $section) {
+    if ($section->newsequence !== $section->sequence) {
+        $DB->update_record('course_sections', array('id' => $sectionid, 'sequence' => $section->newsequence));
+    }
+}
+
+$transaction = $DB->start_delegated_transaction();
+foreach ($movedsections as $id => $position) {
+    if ((int) $sections[$id] !== $position) {
+        $DB->set_field('course_sections', 'section', -$position, ['id' => $id]);
+        // Invalidate the section cache by given section id.
+        course_modinfo::purge_course_section_cache_by_id($course->id, $id);
+    }
+}
+foreach ($movedsections as $id => $position) {
+    if ((int) $sections[$id] !== $position) {
+        $DB->set_field('course_sections', 'section', $position, ['id' => $id]);
+        // Invalidate the section cache by given section id.
+        course_modinfo::purge_course_section_cache_by_id($course->id, $id);
+    }
+}
+
+// If we move the highlighted section itself, then just highlight the destination.
+// Adjust the higlighted section location if we move something over it either direction.
+if ($section == $course->marker) {
+    course_set_marker($course->id, $destination);
+} else if ($section > $course->marker && $course->marker >= $destination) {
+    course_set_marker($course->id, $course->marker+1);
+} else if ($section < $course->marker && $course->marker <= $destination) {
+    course_set_marker($course->id, $course->marker-1);
+}
+
+$transaction->allow_commit();
+
+function testdb() {
+    global $DB;
+
+    try {
+        try {
+            $transaction = $DB->start_delegated_transaction();
+            // Do something here.
+            $transaction->allow_commit();
+        } catch (Exception $e) {
+            // Make sure transaction is valid.
+            if (!empty($transaction) && !$transaction->is_disposed()) {
+                $transaction->rollback($e);
+            }
+        }
+    } catch (Exception $e) {
+        // Silence the rollback exception or do something else.
+    }
+
+}
+
+$dataObj = new stdClass();
+$dataObj->id = $ueid;
+$unixconverted = strtotime($edate);
+$unixconvertedadjusted = strtotime('+1 day', $unixconverted);
+$dataObj->timecreated = $unixconvertedadjusted;
+$table = 'user_extrafields';
+ 
+$DB->update_record($table, $dataObj);
