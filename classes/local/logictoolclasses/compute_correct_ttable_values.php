@@ -21,22 +21,21 @@
  * @copyright 2023 Dan Nessett <dnessett@yahoo.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+declare(strict_types=1);
 
 defined('MOODLE_INTERNAL') || die();
 
-declare(strict_types=1);
-
-namespace D3lph1\Boollet;
-
-require(__DIR__ . '../../vendor/autoload.php');
+require_once(dirname(__FILE__).'/../../../../../config.php');
+require_once(dirname(__FILE__).'/../../../Boollet/vendor/autoload.php');
 
 use D3lph1\Boollet\Parser\{Lexer, Reader\StringInputReader, ShuntingYardParser};
 use D3lph1\Boollet\TruthTable;
-use Symfony\Component\VarDumper\VarDumper;
 
-function compute_correct_ttable_values($expression) {
+function compute_correct_ttable_values($atomicvariables, $expression) {
 	$lexer = Lexer::default();
-	$input = new StringInputReader($expression);
+        $enhancedexpression = expression_prefix_from_atomicvariables($atomicvariables) .
+                                               '⋀(' . $expression . ')';
+	$input = new StringInputReader($enhancedexpression);
 	$parser = new ShuntingYardParser($lexer);
 
 	$expr = $parser->parse($input);
@@ -45,4 +44,33 @@ function compute_correct_ttable_values($expression) {
 		
 	return $table;
 	
+}
+
+function expression_prefix_from_atomicvariables($atomicvariables) {
+    
+    // Get the atomic variables as elements of an array
+    
+    $atomicvariablearray = str_split($atomicvariables, 1);
+    
+    // iterating over the length of the array, process each atomic
+    // variable as '(' <atomicvariable> ⋀ '!' <atomicvariable> ')'.
+    // Then concatenate these strings into '(' <strings> ')'.
+    
+    $numberofvariables = count($atomicvariablearray);
+    $atomicvariableexpression = '(';
+    
+    for($i = 0; $i < $numberofvariables; $i++) {
+        
+        $element = '(' . $atomicvariablearray[$i] . '⋁' . '!' .
+                             $atomicvariablearray[$i] . ')';
+        if($i == 0) {    
+            $atomicvariableexpression = $atomicvariableexpression . $element;
+        } else {
+            $atomicvariableexpression = $atomicvariableexpression . '⋀' . $element  ;
+        }
+    }
+    
+    $atomicvariableexpression = $atomicvariableexpression . ')';
+    
+    return $atomicvariableexpression;
 }

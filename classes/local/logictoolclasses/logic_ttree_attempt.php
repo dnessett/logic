@@ -18,7 +18,7 @@
  * Back-end code for handling data about logic tool problems and the current
  * user's attempt.
  *
- * @package   mod_quiz
+ * @package   mod_logic
  * @copyright 2023 Dan Nessett <dnessett@yahoo.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,30 +27,25 @@ namespace mod_logic\local\logictoolclasses;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * A class encapsulating an attempt to solve a logictoolproblembank
+ * A function to attempt to solve a ttree problem.
  *
  * @copyright  2023 Dan Nessett
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 4.0
  */
-class logic_ttree_attempt {
-    /** @var stdClass the logicexpressions string for the problembank. */
-    protected $logicexpression;
-    /** @var stdClass the course_module. */
-    protected $problem_bank_record;
 
-    // Constructor =============================================================
-    /**
-     * Constructor
+function logic_ttree_attempt($logicexpression, $problem_id, $problem_bank_record) {
+
+	$attempt_array = array(array(array()));
+	
+	/**
+     * Logic ttree attempt
      *
-     * @param object $attemptdata from ????.
-     * @param object $logictool from the logic table.
-	 * @param object $logicexpressions from the logic table.
-     * @param object $cm the course_module object for this logictoolproblembank.
-     * @param object $course the row from the course table for the course we belong to.
+     * @param the logicexpressions string for the problembank.
+     * @param the unique problem id in the problem bank record.
+	 * @param object the problem bank record.
      */
-    public function __construct($logicexpression, $problem_id, $problem_bank_record) {
-        $this->logicexpressions = $logicexpressions;
-        }
-    }
+
+    return $attempt_array;
+}
 

@@ -18,7 +18,7 @@
  * Back-end code for handling data about logic tool problems and the current
  * user's attempt.
  *
- * @package   mod_quiz
+ * @package   mod_logic
  * @copyright 2023 Dan Nessett <dnessett@yahoo.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,103 +27,93 @@ namespace mod_logic\local\logictoolclasses;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * A class encapsulating an attempt to solve a logictoolproblembank
+ * A function that returns the attempt array corresponding to a logic ttable attemp
  *
  * @copyright  2023 Dan Nessett
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 4.0
  */
-class logic_ttable_attempt {
-    /** @var stdClass the atomic variables for the problem. */
-    protected $atomicvariables;
-    /** @var stdClass the logicexpressions string for the problem. */
-    protected $problemexpressions;
-    /** @var stdClass the array of attempt data */
-    protected $attempt_array;
-
-    // Constructor =============================================================
-    /**
-     * Constructor
-     *
-     * @param object $problemexpressions.
-	 * @param object $problem_id.
-     * @param object $problem_bank_record.
-     */
-    public function __construct($problemexpressions, $problem_id,
+ 
+function logic_ttable_attempt($problemexpressions, $problem_id,
     							$problem_bank_record) {
     	global $DB, $CFG;
     	
     	$logicexpressionparts = explode(",", $problemexpressions);
         
-		$this->atomicvariables = array_shift($logicexpressionparts);
-		$this->problemexpressions = $logicexpressionparts;
+		$atomicvariables = array_shift($logicexpressionparts);
+		$problemexpressions = $logicexpressionparts;
         
-        $attempt_array = array();
+        $length = strlen($atomicvariables);
               
         if($problem_bank_record == false){
 			// create attempt array and then store the attempt array values in
 			// the ttable attempt database.
 			
-			create_attempt_array($attempt_array, $problemid);
+			$attempt_array = create_attempt_array($length, $problem_id,
+								 $atomicvariables, $problemexpressions);
 			
         } else {
         	// retrieve the attempt array values from the existing ttable attempt
         	// database.
         
-        	load_array_from_database($attempt_array);
+        	load_array_from_database($attempt_array, $problem_id);
         
         }
-    }
-    
-    private function create_attempt_array($attempt_array, $problemid) {
+    return $attempt_array;
+}
+    function create_attempt_array($length, $problem_id,
+    							  $atomicvariables, $problemexpressions) {
     
 	global $CFG;
 
-	require_once("$CFG->dirroot/mod_logic/classes/local/logictoolclasses/compute_correct_ttable_values.php");
+	require_once(__DIR__ . "/compute_correct_ttable_values.php");
     
     	// set up loop that will create rows for each problem expression
     	// with each row in that group keyed on an interpreation of the
     	// atomic variables.
     	
     	$interpretation_length = 2 ** $length;
-    	$problemexpressions = $this->problemexpressions;
-    	$problemexpressionarray = explode(",", $problemexpressions);
 
-		$TF = array("F", "T");
+		$FT = array("F", "T");
 		$zero_one   = array("0", "1");
-		$row = array();
-		
-		foreach($problemexpressionarray as $problemexpression) {
+        $false_true = array("false", "true");
+                
+		foreach($problemexpressions as $key => $problemexpression) {
 			
 			// Compute the rows corresponding to the problem expression.
-		
+                    
+        	$correct_table = compute_correct_ttable_values($atomicvariables,
+        												   $problemexpression);
+                        
+                        // Replace 0 with F and 1 with T
+			$attempt_array[$key]['problemid'] =  $problem_id;
+			$attempt_array[$key]['problemexpression'] = $problemexpression;
+                                
 			for($x = 0; $x < $interpretation_length; $x++) {
 			
 				// get correct evaluation values for $problemexpression
 				
-				$correct_table = compute_correct_ttable_values($problemexpression);
-				
 				$string = str_pad(decbin($x), $length, 0, STR_PAD_LEFT) . PHP_EOL;
-    
-				// Replace 0 with F and 1 with T
-    
-				$tfstring = str_replace($zero_one, $TF, $string);
-				$row[$x]->problemid =  $problemid;
-				$row[$x]->problemexpression = $probemexpression;
-				$row[$x]->atomicvariablesvalue = $tfstring;
-				$row[$x]->inputvalue = -1;
-
-			
+                                $tfstring = str_replace($zero_one, $FT, $string);
+                                $attempt_array[$key]['atomicvariablesvalue'] = $tfstring;
+                $attempt_array[$key]['inputvalue'][$x] = -1;
+ /*               $attempt_array[$key]['correctvalue'][$x] =
+                                    (str_replace($false_true,
+                                    $FT, $correct_table->values[$x]) ? "T" : "F");
+ 
+ */
+		$attempt_array[$key]['correctvalue'][$x] = str_replace($false_true,
+                                    $zero_one, $correct_table->values[$x]);	
 			}
 		}
 		
-    	return;
+    return $attempt_array;
     
-    }
-    
-    private function load_array_from_database($attempt_array) {
-    
-    	return;
-    
-    }
 }
+    
+function load_array_from_database(&$attempt_array, $problem_id) {
+    
+    return $attempt_array;
+    
+}
+

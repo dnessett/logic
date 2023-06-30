@@ -83,7 +83,7 @@ echo $OUTPUT->header();
 
 // Use the table_data_data instance to output the HTML for the view page.
 
-$this->outputhtml($table_data);
+outputhtml($table_data);
 
 echo $OUTPUT->footer();
 

@@ -36,18 +36,18 @@ defined('MOODLE_INTERNAL') || die();
  * @since      Moodle 4.0
  */
 class logic_problem_bank {
-    /** @var stdClass the logictool for the problembank. */
-    protected $logictool;
-    /** @var stdClass the logicexpressions string for the problembank. */
-    protected $logicexpressions;
-    /** @var stdClass the course_module. */
-    protected $cm;
-    /** @var course module id. */
-    protected $cmid;
-    /** @var information about the course. */
-    protected $course;
     /** @var The user associated with the problem bank. */
     protected $user_id;
+    /** @var the course id. */
+    protected $course_id;
+    /** @var course module id. */
+    protected $cm_id;
+    /** @var time problem bank created. */
+    protected $timecreated;
+    /** @var time problem bank modified. */
+    protected $timemodified;
+    /** @var stdClass the logictool for the problembank. */
+    protected $logictool;
     /** @var The string comprising a CSV list of problem ids. */
     public $problemidstring;
     /** @var Flag indicating whether this problem bank has been submitted. */
@@ -62,17 +62,17 @@ class logic_problem_bank {
      * @param object $cm the course_module object for this logictoolproblembank.
      * @param object $course the row from the course table for the course we belong to.
      */
-    public function __construct($logictool, $logicexpressions, $cm, $course, $user_id,
+    public function __construct($logictool, $logicexpressions, $cm_id, $course_id, $user_id,
     														   $problem_bank_record) {
     	global $DB;
     	
     	if($problem_bank_record == false) {
+            	$this->user_id = $user_id;
+                $this->course_id = $course_id;
+                $this->cm_id = $cm_id;
+                $this->timecreated = time();
+                $this->timemodified = null;
 	        $this->logictool = $logictool;
-	        $this->logicexpressions = $logicexpressions;
-	        $this->cm = $cm;
-	        $this->cmid = $this->cm->id;
-	        $this->course = $course;
-	        $this->user_id = $user_id;
 	        $this->submitted = false;
         
 	        // burst logicexpressions into its parts, one for each problem. The delimiter
@@ -92,9 +92,10 @@ class logic_problem_bank {
 	        									
 	        $problemidstring = strval($problem_next_id);
 	        
-	        for ($i = $problem_next_id+1; $i < $numberofproblems; $i++) {
+	        for ($i = $problem_next_id+1; $i <= $numberofproblems; $i++) {
 				$problemidstring = $problemidstring . ',' . strval($i);
 			}
+                $this->problemidstring = $problemidstring;
         
         } else {
         

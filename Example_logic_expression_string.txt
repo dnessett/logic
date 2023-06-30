@@ -1,1 +1,8 @@
-xyz,x⊕y→(x⋀z);uvw,u⋀w→(u⊕v)
+xyz,y⊕x→(z⋀x);uvw,u⋀w→(u⊕v)
+xyz,(((x⋁!x)⋀(y⋁!y)⋀(z⋁!z))⋀((y⊕x)→(z⋀x)))
+
+xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x)
+
+xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x);uvw,u⋀w,u⊕v,(u⋀w)→(u⊕v)
+
+xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x);uvw,u⋀w,u⊕v,(u⋀w)→(u⊕v);tuvw,t⊕v,!u→w,(t⊕v)⋀(!u→w)

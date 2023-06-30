@@ -73,6 +73,10 @@ class logic_table_data {
     public function __construct($logic, $course, $cm) {
         global $DB, $USER;
         
+        require_once(__DIR__ . "/logic_ttable_attempt.php");
+        require_once(__DIR__ . "/logic_ttree_attempt.php");
+        require_once(__DIR__ . "/logic_derivation_attempt.php");
+
         $this->logic = $logic;
         $this->course = $course;
         $this->cm = $cm;
@@ -83,7 +87,7 @@ class logic_table_data {
         $logic_record = $DB->get_records('logic', array('id'=>$logic->id));
         
         if(!$logic_record) {
-            // whoopse. We have an internal coding error.
+            // Whoopse. We have an internal coding error.
             $message = 'Internal error found in class logic_tables constructor ' . 
                        'in mod/logic/classses/logictoolclasses/logic_tables.php.';
             throw new coding_exception($message);
@@ -115,7 +119,7 @@ class logic_table_data {
 		
 		$problem_bank_record = $DB->get_records('logic_problem_bank',
         						array('id'=>$logic->id,
-        						'course'=>$course->id));
+        						'course_id'=>$course->id));
         						
         // If the problem bank record does not exist, create the objects that
         // comprise it, fill in $table_data with them and insert rows into
@@ -127,9 +131,9 @@ class logic_table_data {
         
             $this->table_data['problembank'] = new logic_problem_bank($this->logictool,
                                                                       $this->logicexpressions,
-                                                                      $this->cm,
-                                                                      $this->course,
-                                                                      $user_id,
+                                                                      $this->cm->id,
+                                                                      $this->course->id,
+                                                                      $this->user_id,
                                                                       $problem_bank_record);
 			
 			// Burst logicexpressions into its parts, one for each problem.
@@ -141,60 +145,96 @@ class logic_table_data {
 			// and an attempt object instance.
 		
 			$problemarray = array();
-			$attemptarray = array();
-			$problemidstring = $this->table_data['problembank']->$problemidstring;
+			$problemidstring = ($this->table_data['problembank'])->problemidstring;
 			$problemidarray = str_getcsv($problemidstring);
+                        $attemptarray = array(array());
+                        $attemptarrayelement = array(array());
+                        $data = array();
+                        $FT = array("F", "T");
+                        $zero_one   = array("0", "1");
+                        $x = 0;
 		
 			foreach($problemstrings as $key => $problemexpression) {
-			
-				$problem_id = array_shift($problemidarray);
-				
-				switch ($this->logictool) {
+                            
+                            // Fill in problem array data
+                            
+                            $problem_id = array_shift($problemidarray);
+                            $logicexpressionparts = explode(",", $problemexpression);
+                                
+                            $atomicvariables = array_Shift($logicexpressionparts);
+                            $logicexpressionstring = implode(',',$logicexpressionparts);
+                            $this->table_data['problemarray'][$key]['problem_id'] = $problem_id;
+                            $this->table_data['problemarray'][$key]['atomicvariables'] = $atomicvariables;
+                            $this->table_data['problemarray'][$key]['logicexpressions'] = $logicexpressionstring;
+                                
+                            // Then fill in logic attempt data
+                                
+            	switch ($this->logictool) {
 					case "truthtable":
-						$attemptarray[$key] = new logic_ttable_attempt(
-                                                            $problemexpression,
-                                                            $problem_id,
-							    							$problem_bank_record);
+						$attemptdata[$key] = logic_ttable_attempt(
+                                                    $problemexpression,
+                                                    $problem_id,
+                                                    $problem_bank_record);
 						break;
 					case "truthtree":
-						$attemptarray[$key] = new logic_ttree_attempt(
-                                                            $problemexpression,
-                                                            $problem_id,
-							    							$problem_bank_record);
+						$attemptdata[$key] = logic_ttree_attempt(
+                                                    $problemexpression,
+                                                    $problem_id,
+                                                    $problem_bank_record);
 						break;
 					case "derivation":
-						$attemptarray[$key] = new logic_deriviation_attempt(
-                                                            $problemexpression,
-                                                            $problem_id,
-                                                            $problem_bank_record);
+						$attemptdata[$key] = logic_deriviation_attempt(
+                                                    $problemexpression,
+                                                    $problem_id,
+                                                    $problem_bank_record);
 						break;
 					default:
 						$message = 'Internal error found in get_record_class_instances ' . 
-									'in mod/logic/classses/logictoolclasses/logic_tables.php. ' .
-									'Invalid logictool type';
+                                                    'in mod/logic/classses/logictoolclasses/logic_tables.php. ' .
+                                                    'Invalid logictool type';
 						throw new coding_exception($message);
+            	}
+				
+				$attemptarrayflat = array_merge($attemptdata[$key]);
+				$expression = explode(",", $problemstrings[$key]);
+				$atomicvariables = $expression[0]; 
+				$length = strlen($atomicvariables);
+                        
+				foreach($attemptarrayflat as $index => $attemptarrayelement) {
+					for($i = $x; $i < count($attemptarrayelement['inputvalue'])+$x; $i++) {
+						$attemptarray[$i]['userid'] = $this->user_id;
+                    	$attemptarray[$i]['problemid'] = $attemptarrayelement['problemid'];
+                    	$attemptarray[$i]['problemexpression'] = $attemptarrayelement['problemexpression'];
+                    	$string = str_pad(decbin($i-$x), $length, 0, STR_PAD_LEFT) . PHP_EOL;
+                    	$attemptarray[$i]['atomicvariablesvalue'] = str_replace($zero_one, $FT, $string);
+                    	$attemptarray[$i]['inputvalue'] = $attemptarrayelement['inputvalue'][$i-$x];
+                    	$attemptarray[$i]['correctvalue'] = $attemptarrayelement['correctvalue'][$i-$x];
+					}
+					
+                    $x += count($attemptarrayelement['inputvalue']);
 				}
 			}
 		
 			// record the problem and attempt arrays in the table data array.
 		
-			$this->table_data['problemarray'] = $problemarray;
+
 			$this->table_data['attemptarray'] = $attemptarray;
 			        
 			// Fill out the problem data bank record.
 	
-			$problem_bank_dataobj->course = $this->course;
-			$problem_bank_dataobj->cmid = $this->cmid;
+            $problem_bank_dataobj = new \stdClass();
+            $problem_bank_dataobj->course_id = $this->course->id;
+			$problem_bank_dataobj->cm_id = $this->cmid;
 			$problem_bank_dataobj->timecreated = strval(time());
 			$problem_bank_dataobj->userid = $this->user_id;
 			$problem_bank_dataobj->logictool = $this->logictool;
-			$problem_bank_dataobj->problemidstring =
-			$this->table_data['problembank']->$problemidstring;
+			$problem_bank_dataobj->problemidstring = $problemidstring;
 			$problem_bank_dataobj->submitted = false;
 
-	
+			$this->table_data['problembank'] = $problem_bank_dataobj;
+                        
 			// And insert the required data into the logic problem bank table.
-        
+     
 			try {
 				try {
                 	$transaction = $DB->start_delegated_transaction();
@@ -213,7 +253,62 @@ class logic_table_data {
                        'in mod/logic/classses/local/logictoolclasses/logic_tables.php.';
 				throw new coding_exception($message);
 			}
-    	
+ 
+            // Insert the problem array data into the logic problem table
+                                
+            try {
+                try {
+                	$transaction = $DB->start_delegated_transaction();
+                	$DB->insert_records('logic_problem', $this->table_data['problemarray']);
+                	$transaction->allow_commit();
+                } catch (Exception $e) {
+            		// Make sure transaction is valid.
+            		if (!empty($transaction) && !$transaction->is_disposed()) {
+                	$transaction->rollback($e);
+            		}
+				}
+			} catch (Exception $e) {
+				// if the rollback fails, throw fatal error exception.
+				$message = 'Internal error occured in class logic_tables, method ' .
+					   	'create records, action insert into logic problem table ' .
+                        'in mod/logic/classses/local/logictoolclasses/logic_tables.php.';
+				throw new coding_exception($message);
+			}
+
+            // Insert the problem array data in to the appropriate attempt table
+            
+			switch ($this->logictool) {
+				case "truthtable":
+					try {
+                		try {
+                			$transaction = $DB->start_delegated_transaction();
+                			$DB->insert_records('logic_ttable_attempt', $this->table_data['attemptarray']);
+                			$transaction->allow_commit();
+                		} catch (Exception $e) {
+            				// Make sure transaction is valid.
+            				if (!empty($transaction) && !$transaction->is_disposed()) {
+                			$transaction->rollback($e);
+            				}
+						}
+					} catch (Exception $e) {
+						// if the rollback fails, throw fatal error exception.
+						$message = 'Internal error occured in class logic_tables, method ' .
+					   	'create records, action insert into logic problem table ' .
+                        'in mod/logic/classses/local/logictoolclasses/logic_tables.php.';
+						throw new coding_exception($message);
+				}
+					break;
+				case "truthtree":
+					break;
+				case "derivation":
+					break;
+				default:
+					$message = 'Internal error found in get_record_class_instances ' . 
+                                'in mod/logic/classses/logictoolclasses/logic_tables.php. ' .
+                                'Invalid logictool type';
+					throw new coding_exception($message);
+            	}
+                                
 			return;
 	
 		} else {

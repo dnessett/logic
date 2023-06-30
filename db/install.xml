@@ -23,11 +23,11 @@
     <TABLE NAME="logic_problem_bank" COMMENT="Stores the data associated with the problem bank.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="ID of the logic problem bank."/>
-        <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the course this activity is part of."/>
-        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The course module instance id."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Identity of user working on the problembank."/>
+        <FIELD NAME="course_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="ID of the course this activity is part of."/>
+        <FIELD NAME="cm_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The course module instance id."/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of when the instance was added to the course."/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Timestamp of when the instance was last modified."/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Identity of user working on the problembank."/>
         <FIELD NAME="logictool" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The logic tool for the problem bank."/>
         <FIELD NAME="problemidstring" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="A CSV string indicating which problems are in the problem bank."/>
         <FIELD NAME="submitted" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether the student has submitted the problem bank for grading."/>
@@ -49,6 +49,7 @@
     <TABLE NAME="logic_ttable_attempt" COMMENT="Stores the data associated with an attempt to solve a truth table problem.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="ID of the truth table problem."/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="Identity of user working on the problembank."/>
         <FIELD NAME="problemid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The id of the problem being attempted."/>
         <FIELD NAME="problemexpression" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The concatenated logicexpression under evaluation."/>
         <FIELD NAME="atomicvariablesvalue" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The string representing the values of the atomic variables."/>

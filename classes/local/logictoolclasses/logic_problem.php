@@ -47,7 +47,7 @@ class logic_problem {
      * @param object $logictool from the logic table.
 	 * @param object $logicexpressions from the logic table.
      */
-    public function __construct($logicexpressions, problem_id,
+    public function __construct($logicexpressions, $problem_id,
     							$problem_bank_record) {
         global $DB;
     
