@@ -110,7 +110,7 @@ class logic_table_data {
 
 	$this->get_class_instances($logic, $course, $cm);
 		
-        }        
+    }        
 
     protected function get_class_instances($logic, $course, $cm) {
  		global $DB;
@@ -233,7 +233,6 @@ class logic_table_data {
 			}
 		
 			// record the problem and attempt arrays in the table data array.
-		
 
 			$this->table_data['attemptarray'] = $attemptarray;
 			        
@@ -325,16 +324,75 @@ class logic_table_data {
                                 'Invalid logictool type';
 					throw new coding_exception($message);
             	}
-                                
-			return;
 	
 		} else {
 		 
-		// read the data in the problem_bank, problem and attempt tables in order
-		// create the correspondig objects to store in the table_data array.
+			// read the data in the problem_bank, problem and attempt tables in order
+			// create the correspondig objects to store in the table_data array.
 		
-		// $problem_bank_id = ($DB->get_field('logic_problem_bank', 'MAX(id)', array())) + 1;
-		
-		}
-	}
+			$problem_bank_record = $DB->get_records('logic_problem_bank',
+													array('userid' => $this->user_id,
+														  'course_id' => $this->course->id,
+														  'cm_id' => $this->cmid));
+            // There is a problem here. $problem_bank_record is indexed
+            // by the id of the row returned. That index is unknown
+            // at this point. Therefore, I have to get the row without
+            // knowing the index. So, I use array_shift.
+                        
+            $problem_bank_row = array_shift(array_values($problem_bank_record));
+
+			// Do a consistency check on problem bank record data
+                
+        	if(count($problem_bank_record) != 1
+           		or $problem_bank_row->logictool != $this->logictool) {
+           		// throw internal coding error exception
+           		$message = 'Internal error occured in class logic_tables, method ' .
+					   	'_consructor, action retrieve problem bank record ' .
+                                                'in mod/logic/classses/local/logictoolclasses/logic_tables.php.';
+				throw new coding_exception($message);
+			}
+                
+        	// if the consistency check passed, get local copies of the
+        	// problemidstring and submitted variables.
+                
+       		$problemidstring = $problem_bank_row->problemidstring;
+       		$submitted = $problem_bank_row->submitted;
+       
+       		// now get the problem array data
+       
+       		$problemidarray = str_getcsv($problemidstring);
+       
+       		foreach($problemidarray as $key => $problemid) {
+				$problemarray[$key] = $DB->get_record('logic_problem',
+										array('id' => $problemid));
+       		}
+       		
+       		// Finally, get the attempt table data
+       		
+       		switch ($this->logictool) {
+				case "truthtable":
+					foreach($problemidarray as $key => $problemid) {
+							$attemptsubarray[$key] = $DB->get_records('logic_ttable_attempt',
+							array('problemid' => $problemid));
+       				}
+       					
+       				//flatten $attemptsubarray into a single array
+       				
+       				$attemptarray = call_user_func_array('array_merge', $attemptsubarray);
+       				
+					break;
+				case "truthtree":
+					break;
+				case "derivation":
+					break;
+				default:
+					$message = 'Internal error found in _constructor ' . 
+                                'in mod/logic/classses/logictoolclasses/logic_tables.php. ' .
+                                'Invalid logictool type';
+					throw new coding_exception($message);
+            }
+    	}
+    	
+    	return;
+    }
 }

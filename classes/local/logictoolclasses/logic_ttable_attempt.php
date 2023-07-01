@@ -85,7 +85,7 @@ function logic_ttable_attempt($problemexpressions, $problem_id,
         	$correct_table = compute_correct_ttable_values($atomicvariables,
         												   $problemexpression);
                         
-                        // Replace 0 with F and 1 with T
+            // Replace 0 with F and 1 with T
 			$attempt_array[$key]['problemid'] =  $problem_id;
 			$attempt_array[$key]['problemexpression'] = $problemexpression;
                                 
@@ -97,7 +97,7 @@ function logic_ttable_attempt($problemexpressions, $problem_id,
                                 $tfstring = str_replace($zero_one, $FT, $string);
                                 $attempt_array[$key]['atomicvariablesvalue'] = $tfstring;
                 $attempt_array[$key]['inputvalue'][$x] = -1;
-		$attempt_array[$key]['correctvalue'][$x] = str_replace($false_true,
+				$attempt_array[$key]['correctvalue'][$x] = str_replace($false_true,
                                     $zero_one, $correct_table->values[$x]);	
 			}
 		}
