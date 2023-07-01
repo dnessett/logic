@@ -97,11 +97,6 @@ function logic_ttable_attempt($problemexpressions, $problem_id,
                                 $tfstring = str_replace($zero_one, $FT, $string);
                                 $attempt_array[$key]['atomicvariablesvalue'] = $tfstring;
                 $attempt_array[$key]['inputvalue'][$x] = -1;
- /*               $attempt_array[$key]['correctvalue'][$x] =
-                                    (str_replace($false_true,
-                                    $FT, $correct_table->values[$x]) ? "T" : "F");
- 
- */
 		$attempt_array[$key]['correctvalue'][$x] = str_replace($false_true,
                                     $zero_one, $correct_table->values[$x]);	
 			}

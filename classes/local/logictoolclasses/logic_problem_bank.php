@@ -63,39 +63,18 @@ class logic_problem_bank {
      * @param object $course the row from the course table for the course we belong to.
      */
     public function __construct($logictool, $logicexpressions, $cm_id, $course_id, $user_id,
-    														   $problem_bank_record) {
+    										$problemidstring,  $problem_bank_record) {
     	global $DB;
     	
     	if($problem_bank_record == false) {
-            	$this->user_id = $user_id;
-                $this->course_id = $course_id;
-                $this->cm_id = $cm_id;
-                $this->timecreated = time();
-                $this->timemodified = null;
+        	$this->user_id = $user_id;
+            $this->course_id = $course_id;
+            $this->cm_id = $cm_id;
+            $this->timecreated = time();
+            $this->timemodified = null;
 	        $this->logictool = $logictool;
 	        $this->submitted = false;
-        
-	        // burst logicexpressions into its parts, one for each problem. The delimiter
-			// is ';'
-        
-	        $problemexpressions = explode(";", $logicexpressions);
-	        
-	        // How many problems in this problem bank? Use this to compute
-	        // the problemidstring with information from the problem table.
-	        
-	        $numberofproblems = count($problemexpressions);
-	        
-	        $problem_next_id = $DB->get_field('logic_problem', 'MAX(id)',
-                                                    array());
-	        if($problem_next_id == NULL) {$problem_next_id = 1;}
-	        else {$problem_next_id = $problem_next_id + 1;}
-	        									
-	        $problemidstring = strval($problem_next_id);
-	        
-	        for ($i = $problem_next_id+1; $i <= $numberofproblems; $i++) {
-				$problemidstring = $problemidstring . ',' . strval($i);
-			}
-                $this->problemidstring = $problemidstring;
+        	$this->problemidstring = $problemidstring;
         
         } else {
         

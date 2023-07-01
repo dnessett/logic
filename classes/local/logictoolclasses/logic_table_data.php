@@ -127,6 +127,27 @@ class logic_table_data {
         
         if($problem_bank_record == false) {
         
+        	// burst logicexpressions into its parts, one for each problem. The delimiter
+			// is ';'
+        
+	        $problemexpressions = explode(";", $this->logicexpressions);
+	        
+	        // How many problems in this problem bank? Use this to compute
+	        // the problemidstring with information from the problem table.
+	        
+	        $numberofproblems = count($problemexpressions);
+	        
+	        $problem_next_id = $DB->get_field('logic_problem', 'MAX(id)',
+                                                    array());
+	        if($problem_next_id === NULL) {$problem_next_id = 1;}
+	        else {$problem_next_id = $problem_next_id + 1;}
+	        									
+	        $problemidstring = strval($problem_next_id);
+	        
+	        for ($i = $problem_next_id+1; $i <= $numberofproblems; $i++) {
+				$problemidstring = $problemidstring . ',' . strval($i);
+			}
+        
 	        // create problem bank object
         
             $this->table_data['problembank'] = new logic_problem_bank($this->logictool,
@@ -134,6 +155,7 @@ class logic_table_data {
                                                                       $this->cm->id,
                                                                       $this->course->id,
                                                                       $this->user_id,
+                                                                      $problemidstring,
                                                                       $problem_bank_record);
 			
 			// Burst logicexpressions into its parts, one for each problem.
@@ -144,28 +166,25 @@ class logic_table_data {
 			// For each problem create an instance of the logic_problem object
 			// and an attempt object instance.
 		
-			$problemarray = array();
-			$problemidstring = ($this->table_data['problembank'])->problemidstring;
 			$problemidarray = str_getcsv($problemidstring);
-                        $attemptarray = array(array());
-                        $attemptarrayelement = array(array());
-                        $data = array();
-                        $FT = array("F", "T");
-                        $zero_one   = array("0", "1");
-                        $x = 0;
+            $attemptarray = array(array());
+            $attemptarrayelement = array(array());
+            $FT = array("F", "T");
+            $zero_one   = array("0", "1");
+            $x = 0;
 		
 			foreach($problemstrings as $key => $problemexpression) {
                             
-                            // Fill in problem array data
+            	// Fill in problem array data
                             
-                            $problem_id = array_shift($problemidarray);
-                            $logicexpressionparts = explode(",", $problemexpression);
+            	$problem_id = array_shift($problemidarray);
+                $logicexpressionparts = explode(",", $problemexpression);
                                 
-                            $atomicvariables = array_Shift($logicexpressionparts);
-                            $logicexpressionstring = implode(',',$logicexpressionparts);
-                            $this->table_data['problemarray'][$key]['problem_id'] = $problem_id;
-                            $this->table_data['problemarray'][$key]['atomicvariables'] = $atomicvariables;
-                            $this->table_data['problemarray'][$key]['logicexpressions'] = $logicexpressionstring;
+                $atomicvariables = array_Shift($logicexpressionparts);
+                $logicexpressionstring = implode(',',$logicexpressionparts);
+                $this->table_data['problemarray'][$key]['problem_id'] = $problem_id;
+                $this->table_data['problemarray'][$key]['atomicvariables'] = $atomicvariables;
+                $this->table_data['problemarray'][$key]['logicexpressions'] = $logicexpressionstring;
                                 
                             // Then fill in logic attempt data
                                 
@@ -196,8 +215,6 @@ class logic_table_data {
             	}
 				
 				$attemptarrayflat = array_merge($attemptdata[$key]);
-				$expression = explode(",", $problemstrings[$key]);
-				$atomicvariables = $expression[0]; 
 				$length = strlen($atomicvariables);
                         
 				foreach($attemptarrayflat as $index => $attemptarrayelement) {
@@ -233,8 +250,8 @@ class logic_table_data {
 
 			$this->table_data['problembank'] = $problem_bank_dataobj;
                         
-			// And insert the required data into the logic problem bank table.
-     
+			// And insert the required data into the logic problem bank table
+
 			try {
 				try {
                 	$transaction = $DB->start_delegated_transaction();
