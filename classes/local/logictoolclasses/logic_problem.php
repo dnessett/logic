@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Back-end code for handling data about logic tool problems and the current
- * user's attempt.
+ * Logic to create the state used to represent a problem in a problem bank.
  *
- * @package   mod_quiz
+ * @package   mod_logic
  * @copyright 2023 Dan Nessett <dnessett@yahoo.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,7 +26,7 @@ namespace mod_logic\local\logictoolclasses;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * A class 
+ * A class holding the state that represents a problem.
  *
  * @copyright  2023 Dan Nessett
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -49,68 +48,32 @@ class logic_problem {
      */
     public function __construct($logicexpressions, $problem_id,
     							$problem_bank_record) {
-        global $DB;
     
-		if($problem_bank_record ==  false) {
-    	
-    		// There is no problem bank record for the corresponding problem bank.
-    		// Create rows in the logic_problem table for each problem in
-    		// $logicexpressions
+		// Create rows in the logic_problem table for each problem in
+    	// $logicexpressions
     		
-	        $this->logicexpressions = $logicexpressions;
+	    $this->logicexpressions = $logicexpressions;
         
-	        // Burst logicexpressions into its parts: 1) the string of atomic variables,
-	        // 2) an array of logic expressions to which the tool is applied.
-	        // The delimiter is ','
+	    // Burst logicexpressions into its parts: 1) the string of atomic variables,
+	    // 2) an array of logic expressions to which the tool is applied.
+	    // The delimiter is ','
 			
-			// Each element of the array is a logic expression to evaluate for a
-			// problem. There are generally more than one, since the full expression
-			// is broken into sub-expressions to evaluate. For example, the final
-			// logic expression  might be x⊕y→(x⋀z). It has two subexpressions
-			// x⊕y and x⋀z. Evaluating the two sub expressions allows the student
-			// to gradually evaluate the final expression. So, the string
-			// would be "xyz,x⊕y,x⋀z,x⊕y→(x⋀z)".
+		// Each element of the array is a logic expression to evaluate for a
+		// problem. There are generally more than one, since the full expression
+		// is broken into sub-expressions to evaluate. For example, the final
+		// logic expression  might be x⊕y→(x⋀z). It has two subexpressions
+		// x⊕y and x⋀z. Evaluating the two sub expressions allows the student
+		// to gradually evaluate the final expression. So, the string
+		// would be "xyz,x⊕y,x⋀z,x⊕y→(x⋀z)".
         
-	        // Put the first array element into $atomicvariables, and the rest of the
-	        // array variables into the array $logicexpressarray.
+	    // Put the first array element into $atomicvariables, and the rest of the
+	    // array variables into the array $logicexpressarray.
 	                
-			$logicexpressionparts = explode(",", $logicexpressions);
+		$logicexpressionparts = explode(",", $logicexpressions);
         
-			$this->atomicvariables = array_shift($logicexpressionparts);
-			$this->logicexpressionarray = $logicexpressionparts;
+		$this->atomicvariables = array_shift($logicexpressionparts);
+		$this->logicexpressionarray = $logicexpressionparts;
 			
-			// fill out the problem data object and insert it into the logic_problem
-			// table.
-			
-			$problem_dataobj->atomicvariables = $this->atomicvariables;
-			$problem_dataobj->logicexpressions = $this->logicexpressionarray;
-			
-			try {
-				try {
-                    $transaction = $DB->start_delegated_transaction();
-                    $DB->insert_record('logic_problem', $problem_dataobj);
-                    $transaction->allow_commit();
-                } catch (Exception $e) {
-                    // Make sure transaction is valid.
-                    if (!empty($transaction) && !$transaction->is_disposed()) {
-                        $transaction->rollback($e);
-                    }
-                                    }
-                } catch (Exception $e) {
-					// if the rollback fails, throw fatal error exception.
-					$message = 'Internal error occured in class logic_problem, method ' .
-						'constructor, action insert into logic problem table ' .
-						'in mod/logic/classses/local/logictoolclasses/logic_problem.php.';
-					throw new coding_exception($message);
-                }
-
-		} else {
-		
-			// Use the data accessible through the problem_bank_record to create the
-			// logic_problem class
-		
-		}
-		
 		return;
     }
 }

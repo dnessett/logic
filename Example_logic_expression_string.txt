@@ -6,3 +6,5 @@ xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x)
 xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x);uvw,u⋀w,u⊕v,(u⋀w)→(u⊕v)
 
 xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x);uvw,u⋀w,u⊕v,(u⋀w)→(u⊕v);tuvw,t⊕v,!u→w,(t⊕v)⋀(!u→w)
+
+xyz,z⊕x,y⋀x,(z⊕x)→(y⋀x)

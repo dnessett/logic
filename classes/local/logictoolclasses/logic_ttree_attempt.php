@@ -15,8 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Back-end code for handling data about logic tool problems and the current
- * user's attempt.
+ * Code that keeps track of the attempt associated with solving a truth tree.
  *
  * @package   mod_logic
  * @copyright 2023 Dan Nessett <dnessett@yahoo.com>

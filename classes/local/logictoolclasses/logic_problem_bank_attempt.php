@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Code for creating a problem bank.
+ * Code for keeping track of a user's atempt to solve a problem bank.
  *
  * @package   mod_logic
  * @copyright 2023 Dan Nessett <dnessett@yahoo.com>
@@ -26,25 +26,19 @@ namespace mod_logic\local\logictoolclasses;
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * A class that encapsulates the state associated with a problem bank.
+ * A class used to keep track of an attempt by a student to solve a problem bank.
  *
  * @copyright  2023 Dan Nessett
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @since      Moodle 4.0
  */
-class logic_problem_bank {
-    /** @var the course id. */
-    public $course_id;
-    /** @var course module id. */
-    public $cm_id;
-    /** @var stdClass the logictool for the problembank. */
-    public $logictool;
-    /** @var time problem bank created. */
-    public $timecreated;
-    /** @var time problem bank modified. */
-    public $timemodified;
-    /** @var The string comprising a CSV list of problem ids. */
-    public $problemidstring;
+class logic_problem_bank_attempt {
+    /** @var the id of the problem bank associated with this attempt. */
+    protected $problembank_id;
+    /** @var the id of the user associated with this attempt. */
+    protected $user_id;
+    /** @var Flag indicating whether this problem bank attempt has been submitted. */
+    protected $submitted;
 
     // Constructor =============================================================
     /**
@@ -55,16 +49,18 @@ class logic_problem_bank {
      * @param object $cm the course_module object for this logictoolproblembank.
      * @param object $course the row from the course table for the course we belong to.
      */
-    public function __construct($course_id, $cm_id, $logictool,
-                                                      $problemidstring) {
+    public function __construct($logictool, $logicexpressions, $cm_id, $course_id,
+    										$problemidstring,  $problem_bank_record) {
+    	global $DB;
     	
-        $this->course_id = $course_id;
-        $this->cm_id = $cm_id;
-        $this->timecreated = time();
-        $this->timemodified = time();
-	    $this->logictool = $logictool;
-        $this->problemidstring = $problemidstring;
-        
-        return;
+    	if($problem_bank_record == false) {
+            $this->course_id = $course_id;
+            $this->cm_id = $cm_id;
+            $this->timecreated = time();
+            $this->timemodified = null;
+	        $this->logictool = $logictool;
+	        $this->submitted = false;
+        	$this->problemidstring = $problemidstring;
+        }
     }
 }

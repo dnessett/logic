@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin strings are defined here.
+ * Logic plugin strings are defined here.
  *
  * @package     mod_logic
  * @category    string
