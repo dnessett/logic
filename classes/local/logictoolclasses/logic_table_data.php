@@ -256,7 +256,7 @@ class logic_table_data {
     	// First, get the problem bank id.
     	
     	if(array_key_exists('problembank', $this->attempt_data)) {
-			$problem_bank_id = $this->attempt_data['problembank']['id'];
+			$problem_bank_id = $this->attempt_data['problembank']->id;
 
 		} else {
 		
@@ -344,7 +344,7 @@ class logic_table_data {
     	// Get an array of the problemstrings in the problem bank set.
     	
     	if(array_key_exists('problembank', $this->attempt_data)) {
-    		$problemidstring = $this->attempt_data['problembank']['problemidstring'];
+    		$problemidstring = $this->attempt_data['problembank']->problemidstring;
 			$problemidarray = str_getcsv($problemidstring);
 		} else {
 
