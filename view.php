@@ -29,6 +29,30 @@ require_once($CFG->dirroot . '/course/format/lib.php');
 
 use \mod_logic\local\logictoolclasses\logic_table_data;
 
+$initialized = false;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+	// make sure the table_data class instance exits (i.e., view.php
+	// is called for the first time by moodle, not by processing an
+	// attempt form.
+	
+	if($initialized === false) {
+	
+		// This should never happen, but if it does it is a coding error
+		
+		$message = 'Internal error found ' . 
+                'in mod/logic/classses/logictoolclasses/view.php.';
+        throw new \coding_exception($message);
+	
+	} else {
+	
+		process_post_data ();
+	
+	}
+
+}
+
 $id = optional_param('id', 0, PARAM_INT); // Course Module ID, or ...
 $l = optional_param('l',  0, PARAM_INT);  // Module instance ID.
 
@@ -79,6 +103,13 @@ $PAGE->set_heading(format_string($course->fullname));
 
 $table_data = new logic_table_data($logic, $course, $cm);
 
+// Set up a session to hold the table_data class instance between calls to
+// view.php by the attempt form processing code.
+
+$_SESSION['table_data'] = $table_data;
+
+$initialized = true;
+
 echo $OUTPUT->header();
 
 // Use the table_data_data instance to output the HTML for the view page.
@@ -87,8 +118,24 @@ outputhtml($table_data);
 
 echo $OUTPUT->footer();
 
+process_post_data();
+
+return;
+
 function outputhtml($table_data) {
 
+return;
+
+}
+
+function process_post_data () {
+
+$table_data = $_SESSION['table_data'];
+
+// process the $_POST data. If the $_POST is for a "submit" button, record the
+// results of the attempt and terminate the attempt. Otherwise, process the
+// $_POST data and re-display the attempt form.
+ 
 return;
 
 }

@@ -61,7 +61,7 @@ class logic_table_data {
     /** @var stdClass the id of the user for the problembank. */
     protected $user_id;
     /** @var The problem array id. */
-    protected $table_data;
+    protected $attempt_data;
 
     // Constructor =============================================================
     /**
@@ -95,7 +95,7 @@ class logic_table_data {
             throw new \coding_exception($message);
         }
         
-        // fill in remaining class variables except $table_data, which will hold
+        // fill in remaining class variables except $attempt_data, which will hold
         // an array of class instances, one for each table associated with the
         // problem bank.
 
@@ -108,9 +108,9 @@ class logic_table_data {
         $this->intro = $logic_record[$logic->id]->intro;
         $this->user_id = $USER->id;
          
-        // Create the $table_data array.
+        // Create the $attempt_data array.
 
-		$this->get_table_data($logic, $course, $cm);
+		$this->get_attempt_data($logic, $course, $cm);
 		
     }      
       
@@ -123,7 +123,7 @@ class logic_table_data {
 	 * @param object $cm - the course_module object for this logic problem bank.
 	 */
  
-    protected function get_table_data($logic, $course, $cm) {
+    protected function get_attempt_data($logic, $course, $cm) {
  		
  		// Get a problem bank table data.
  		
@@ -165,10 +165,10 @@ class logic_table_data {
         						'course_id'=>$course->id));
         						
         // If the problem bank record does not exist, create the object that
-        // comprises it, fill in $table_data with it and insert rows into
+        // comprises it, fill in $attempt_data with it and insert rows into
         // the problem_bank tables.
         
-        if($problem_bank_record === false) {
+        if($problem_bank_record == false) {
 	        
 	        // How many problems in this problem bank? Use this to compute
 	        // the problemidstring.
@@ -187,7 +187,7 @@ class logic_table_data {
         
 	        // create problem bank object
         
-            $this->table_data['problembank'] = new logic_problem_bank($this->course->id,
+            $this->attempt_data['problembank'] = new logic_problem_bank($this->course->id,
             														  $this->cm->id,
             														  $this->logictool,                                                                    
                                                                       $problemidstring);
@@ -197,12 +197,12 @@ class logic_table_data {
             // First create the necessary dataobj
             
             $problembankobj = new \stdClass();
-            $problembankobj->course_id = $this->table_data['problembank']->course_id;
-            $problembankobj->cm_id = $this->table_data['problembank']->cm_id;
-            $problembankobj->timecreated = $this->table_data['problembank']->timecreated;
-            $problembankobj->logictool = $this->table_data['problembank']->logictool;
+            $problembankobj->course_id = $this->attempt_data['problembank']->course_id;
+            $problembankobj->cm_id = $this->attempt_data['problembank']->cm_id;
+            $problembankobj->timecreated = $this->attempt_data['problembank']->timecreated;
+            $problembankobj->logictool = $this->attempt_data['problembank']->logictool;
             $problembankobj->problemidstring =
-            						$this->table_data['problembank']->problemidstring;
+            						$this->attempt_data['problembank']->problemidstring;
                 
 			try {
 				try {
@@ -223,7 +223,7 @@ class logic_table_data {
 				throw new \coding_exception($message);
 			}
 			         
-        	$this->table_data['problembank']->id = $id;
+        	$this->attempt_data['problembank']->id = $id;
 	
 		} else {
 		
@@ -231,13 +231,13 @@ class logic_table_data {
 		
 		$problemidstring = $problem_bank_record->problemidstring;
 		
-		$this->table_data['problembank']['id'] = $problem_bank_record->id;
-		$this->table_data['problembank']['course_id'] = $problem_bank_record->course_id;
-		$this->table_data['problembank']['cm_id'] = $problem_bank_record->cm_id;
-		$this->table_data['problembank']['timecreated'] = $problem_bank_record->timecreated;
-		$this->table_data['problembank']['timemodified'] = $problem_bank_record->timemodified;
-		$this->table_data['problembank']['logictool'] = $problem_bank_record->logictool;
-		$this->table_data['problembank']['problemidstring'] = $problem_bank_record->problemidstring;
+		$this->attempt_data['problembank']['id'] = $problem_bank_record->id;
+		$this->attempt_data['problembank']['course_id'] = $problem_bank_record->course_id;
+		$this->attempt_data['problembank']['cm_id'] = $problem_bank_record->cm_id;
+		$this->attempt_data['problembank']['timecreated'] = $problem_bank_record->timecreated;
+		$this->attempt_data['problembank']['timemodified'] = $problem_bank_record->timemodified;
+		$this->attempt_data['problembank']['logictool'] = $problem_bank_record->logictool;
+		$this->attempt_data['problembank']['problemidstring'] = $problem_bank_record->problemidstring;
 		}
 		
 		return;
@@ -255,8 +255,8 @@ class logic_table_data {
     	// See if there is a problem_bank_attempt_record for the problem bank id.
     	// First, get the problem bank id.
     	
-    	if(array_key_exists('problembank', $this->table_data)) {
-			$problem_bank_id = $this->table_data['problembank']['id'];
+    	if(array_key_exists('problembank', $this->attempt_data)) {
+			$problem_bank_id = $this->attempt_data['problembank']['id'];
 
 		} else {
 		
@@ -274,18 +274,18 @@ class logic_table_data {
         						array('problembankid'=> $problem_bank_id,
         						'userid'=> $this->user_id));
         						
-        // If the problem bank record does not exist, fill in $table_data and
+        // If the problem bank record does not exist, fill in $attempt_data and
         // insert rows into the problem_bank tables.
       
-        if($problem_bank_attempt_record === false) {
+        if($problem_bank_attempt_record == false) {
    	
     		// Fill in the problem bank attempt data. Note: at this point the problem
     		// bank data corresponding to the current processing should exist
     		// in the table data array.
     		                
-        	$this->table_data['problembankattempt']['problembankid'] = $problem_bank_id;
-			$this->table_data['problembankattempt']['userid'] = $this->user_id;
-			$this->table_data['problembankattempt']['submitted'] = false;
+        	$this->attempt_data['problembankattempt']['problembankid'] = $problem_bank_id;
+			$this->attempt_data['problembankattempt']['userid'] = $this->user_id;
+			$this->attempt_data['problembankattempt']['submitted'] = false;
 
  			// Create the problem bank attempt record
         
@@ -293,7 +293,7 @@ class logic_table_data {
 				try {
                 	$transaction = $DB->start_delegated_transaction();
                 	$id = $DB->insert_record('logic_problem_bank_attempt',
-                						$this->table_data['problembankattempt'],
+                						$this->attempt_data['problembankattempt'],
                 						true);
                 	$transaction->allow_commit();
             	} catch (Exception $e) {
@@ -311,20 +311,20 @@ class logic_table_data {
 				throw new \coding_exception($message);
         	}
         	
-        	$this->table_data['problembankattempt']['id'] = $id;
+        	$this->attempt_data['problembankattempt']['id'] = $id;
 		
         } else {
         	
         	// if the problem bank record does exist, fill in the table data with
         	// the values from the problem_bank_attempt record.
         	
-			$this->table_data['problembankattempt']['id'] = 
+			$this->attempt_data['problembankattempt']['id'] = 
 										$problem_bank_attempt_record->id;
-			$this->table_data['problembankattempt']['problembankid'] = 
+			$this->attempt_data['problembankattempt']['problembankid'] = 
 										$problem_bank_attempt_record->problembankid;
-			$this->table_data['problembankattempt']['userid'] =
+			$this->attempt_data['problembankattempt']['userid'] =
 										$problem_bank_attempt_record->userid;
-			$this->table_data['problembankattempt']['submitted'] =
+			$this->attempt_data['problembankattempt']['submitted'] =
 										$problem_bank_attempt_record->submitted;
 			}
 			
@@ -343,8 +343,8 @@ class logic_table_data {
     	
     	// Get an array of the problemstrings in the problem bank set.
     	
-    	if(array_key_exists('problembank', $this->table_data)) {
-    		$problemidstring = $this->table_data['problembank']['problemidstring'];
+    	if(array_key_exists('problembank', $this->attempt_data)) {
+    		$problemidstring = $this->attempt_data['problembank']['problemidstring'];
 			$problemidarray = str_getcsv($problemidstring);
 		} else {
 
@@ -365,10 +365,10 @@ class logic_table_data {
 			$problem_record = $DB->get_record('logic_problem',
         						array('problemid' => $problemid));
         							
-        	// If the problem bank record does not exist, fill in $table_data and
+        	// If the problem bank record does not exist, fill in $attempt_data and
         	// insert rows into the problem_bank tables.
       
-        	if($problem_record === false) {
+        	if($problem_record == false) {
         	
         		// The problem does not exist in the problem table. Set up table data
         		// accordingly and create problem table record
@@ -379,10 +379,10 @@ class logic_table_data {
         		$atomicvariables = array_shift($logicexpressionparts);
         		$logicexpressionstring = implode(',',$logicexpressionparts);
         			
-        		$this->table_data['problemarray'][$index]['problemid'] = $problemid;
-        		$this->table_data['problemarray'][$index]['atomicvariables'] =
+        		$this->attempt_data['problemarray'][$index]['problemid'] = $problemid;
+        		$this->attempt_data['problemarray'][$index]['atomicvariables'] =
                 												$atomicvariables;
-        		$this->table_data['problemarray'][$index]['logicexpressions'] =
+        		$this->attempt_data['problemarray'][$index]['logicexpressions'] =
                 												$logicexpressionstring;
   		 
        	 		// Insert the problem array data into the logic problem table.
@@ -414,7 +414,7 @@ class logic_table_data {
 		
 			// The table exists. Fill in the table data from the logic_problem record.
 		
-			$this->table_data['problemarray'][$index] = $problem_record;
+			$this->attempt_data['problemarray'][$index] = $problem_record;
 					
 			}
 			
@@ -429,9 +429,9 @@ class logic_table_data {
     protected function get_logicgtool_attempt_data() {
     	global $DB;
     	
-    	if(array_key_exists('problembankattempt', $this->table_data)) {
-    		$problem_bank_id = $this->table_data['problembankattempt']['problembankid'];
-    		$problem_bank_attempt_id = $this->table_data['problembankattempt']['id'];
+    	if(array_key_exists('problembankattempt', $this->attempt_data)) {
+    		$problem_bank_id = $this->attempt_data['problembankattempt']['problembankid'];
+    		$problem_bank_attempt_id = $this->attempt_data['problembankattempt']['id'];
 			
 		} else {
 		
@@ -447,7 +447,7 @@ class logic_table_data {
 		$problem_bank = $DB->get_record('logic_problem_bank',
         						array('id'=> $problem_bank_id));
         						
-        if($problem_bank === false) {
+        if($problem_bank == false) {
         
         	// Whoopse. There is an internal coding error. Throw a coding exception.
 			$message = 'Internal error found in get_logicgtool_attempt_data - 2nd instance ' . 
@@ -471,11 +471,11 @@ class logic_table_data {
 					// Get the ttable attempt record corresponding to the
 					// problembankattemptid and problem id.
 	
-					$ttable_attempt = $DB->get_record('logic_ttable_attempt',
+					$ttable_attempt = $DB->get_records('logic_ttable_attempt',
         						array('problembankattemptid'=> $problem_bank_attempt_id,
         						'problemid'=> $problemid));
         						
-        			if($ttable_attempt === false) {
+        			if($ttable_attempt == false) {
         				
         				// If there is no record corresponding to the truth
         				// table attempt, fill in table data and create it.
@@ -499,7 +499,7 @@ class logic_table_data {
 					
 					$attemptarray = call_user_func_array('array_merge',
 														  $attemptarrayelement); 
-					$this->table_data['attemptarray'] = $attemptarray;
+					$this->attempt_data['attemptarray'] = $attemptarray;
 					
 			break;
 					
