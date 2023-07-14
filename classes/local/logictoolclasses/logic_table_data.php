@@ -37,31 +37,31 @@ defined('MOODLE_INTERNAL') || die();
  */
 class logic_table_data {
     /** @var stdClass the mod_logic table id. */
-    protected $logic;
+    public $logic;
     /** @var information about the course. */
-    protected $course;
+     public $course;
     /** @var stdClass the course_module. */
-    protected $cm;
+     public $cm;
     /** @var course module id. */
-    protected $cmid;
+     public $cmid;
     /** @var stdClass the text ldentifier of the logic tool. */
-    protected $logictool;
+     public $logictool;
     /** @var stdClass the text name of the course. */
-    protected $name;
+     public $name;
     /** @var stdClass the time the course module was created. */
-    protected $timecreated;
+     public $timecreated;
     /** @var stdClass the time the course module was last modified. */
-    protected $timemodified;
+     public $timemodified;
     /** @var stdClass the introductory text for a problembank. */
-    protected $intro;
+     public $intro;
     /** @var stdClass the logicexpressions string for the problembank. */
-    protected $logicexpressions;
+     public $logicexpressions;
     /** @var stdClass the problem string array from logicexpressions. */
-    protected $problemstrings;
+     public $problemstrings;
     /** @var stdClass the id of the user for the problembank. */
-    protected $user_id;
+     public $user_id;
     /** @var The problem array id. */
-    protected $attempt_data;
+     public $attempt_data;
 
     // Constructor =============================================================
     /**
@@ -256,7 +256,7 @@ class logic_table_data {
     	// First, get the problem bank id.
     	
     	if(array_key_exists('problembank', $this->attempt_data)) {
-			$problem_bank_id = $this->attempt_data['problembank']->id;
+			$problem_bank_id = ((array) $this->attempt_data['problembank'])['id'];
 
 		} else {
 		
@@ -344,7 +344,7 @@ class logic_table_data {
     	// Get an array of the problemstrings in the problem bank set.
     	
     	if(array_key_exists('problembank', $this->attempt_data)) {
-    		$problemidstring = $this->attempt_data['problembank']->problemidstring;
+    		$problemidstring = ((array) $this->attempt_data['problembank'])['problemidstring'];
 			$problemidarray = str_getcsv($problemidstring);
 		} else {
 

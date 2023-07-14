@@ -1,88 +1,201 @@
-    <thead>
-        <tr>
-            <th scope="col">xyz</th>
-            <th scope="col">x⋀y⋀z</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>FFF</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>FFT</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>FTF</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>FTT</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>TFF</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>TFT</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>TTF</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>TTT</td>
-            <td>
-                <select class="select">
-                    <option value="-1"></option>
-                    <option value="0">F</option>
-                    <option value="1">T</option>
-                </select>
-            </td>
-        </tr>
-    </tbody>
+<!DOCTYPE html>
+<html>
+	<head>
+	<style>
+	.m-ttable {
+	  padding : 50px 50px 50px 50px;
+	  grid-column-gap: 20px;
+	}
+	.table {
+	  border: 1px solid;
+	}
+	
+	.table tr td:empty {
+        width: 25px;
+    }
+  
+    .table tr td {
+     padding-top: 10px;
+    padding-bottom: 10px;
+    }
+
+	.td {
+	  border: 1px solid;
+	}
+	
+	.th {
+	  border: 1px solid;
+	}
+	</style>
+	</head>
+	<body>
+	<h2>Problem 1</h2>
+		<div class="m-ttable">
+			<table class="table">
+				<thead>
+					<tr>
+						<th scope="col">xyz</th>
+						<th scope="col"></th>
+						<th scope="col">x⋀y⋀z</th>
+						<th scope="col"></th>
+						<th scope="col">x⋁y⋁z</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>FFF</td>
+						<td></td>
+						<td bgcolor="red">
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>FFT</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>FTF</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>FTT</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>TFF</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>TFT</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>TTF</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<td>TTT</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+						<td></td>
+						<td>
+							<select class="select">
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1">T</option>
+							</select>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
