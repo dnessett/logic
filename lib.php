@@ -115,3 +115,19 @@ function logic_delete_instance($id) {
 
     return true;
 }
+
+function logic_lock() {
+
+$file = __DIR__  . "/lockfile.txt";
+$fp = fopen($file, 'w');
+flock($fp, LOCK_EX);
+return $fp;
+
+}
+
+function logic_unlock($fp) {
+
+flock($fp, LOCK_UN);
+fclose($fp);
+
+}

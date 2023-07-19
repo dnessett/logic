@@ -23,6 +23,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_logic\local\logictoolclasses;
+require_once(__DIR__ . '/../../../lib.php');
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -62,6 +63,8 @@ class logic_table_data {
      public $user_id;
     /** @var The problem array id. */
      public $attempt_data;
+	/** @var The lock pointer. Needed here so that exception code can unlock mutex. */
+	 private $lock_pointer;
 
     // Constructor =============================================================
     /**
@@ -72,7 +75,7 @@ class logic_table_data {
      * @param object $cm - the course_module object for this logic problem bank.
      */
 
-    public function __construct($logic, $course, $cm) {
+    public function __construct($logic, $course, $cm, $lock_pointer) {
         global $DB, $USER;
         
         require_once(__DIR__ . "/logic_ttable_attempt.php");
@@ -83,6 +86,7 @@ class logic_table_data {
         $this->course = $course;
         $this->cm = $cm;
         $this->cmid = $this->cm->id;
+        $this->lock_pointer = $lock_pointer;
         
         // get the other logic table values.
     
@@ -90,6 +94,7 @@ class logic_table_data {
         
         if(!$logic_record) {
             // Whoopse. We have an internal coding error.
+            logic_unlock($this->lock_pointer);
             $message = 'Internal error found in class logic_tables constructor ' . 
                        'in mod/logic/classses/logictoolclasses/logic_tables.php.';
             throw new \coding_exception($message);
@@ -110,7 +115,7 @@ class logic_table_data {
          
         // Create the $attempt_data array.
 
-		$this->get_attempt_data($logic, $course, $cm);
+		$this->get_attempt_info($course, $cm);
 		
     }      
       
@@ -123,11 +128,11 @@ class logic_table_data {
 	 * @param object $cm - the course_module object for this logic problem bank.
 	 */
  
-    protected function get_attempt_data($logic, $course, $cm) {
+    protected function get_attempt_info($course, $cm) {
  		
  		// Get a problem bank table data.
  		
- 		$this->get_problem_bank_data($logic, $course);
+ 		$this->get_problem_bank_data($course, $cm);
  		
          // Get the problem bank attempt table data
             
@@ -155,13 +160,13 @@ class logic_table_data {
 	 * @param object $cm - the course_module object for this logic problem bank.
 	 */
  
-    protected function get_problem_bank_data($logic, $course) {
+    protected function get_problem_bank_data($course, $cm) {
     	global $DB;
     	
     	// See if there is a problem_bank_record for this course module instance.
 		
 		$problem_bank_record = $DB->get_record('logic_problem_bank',
-        						array('id'=>$logic->id,
+        						array('cm_id'=>$cm->id,
         						'course_id'=>$course->id));
         						
         // If the problem bank record does not exist, create the object that
@@ -217,6 +222,7 @@ class logic_table_data {
 				}
 			} catch (Exception $e) {
 				// if the rollback fails, throw fatal error exception.
+				logic_unlock($this->lockpointer);
 				$message = 'Internal error occured in class logic_tables, function ' .
 					   'get_problem_bank_data(), action insert into logic problem bank' .
                        'table in mod/logic/classses/local/logictoolclasses/logic_tables.php.';
@@ -261,6 +267,7 @@ class logic_table_data {
 		} else {
 		
 		// Whoopse. There is an internal coding error. Throw a coding exception.
+		logic_unlock($this->lockpointer);
 		$message = 'Internal error found in get_problem_bank_attempt_data ' . 
                        'in mod/logic/classses/logictoolclasses/logic_tables.php.';
         throw new \coding_exception($message);
@@ -304,6 +311,7 @@ class logic_table_data {
 				}
 			} catch (Exception $e) {
 				// if the rollback fails, throw fatal error exception.
+				logic_unlock($this->lockpointer);
 				$message = 'Internal error occured in class logic_tables, function ' .
 					   'get_problem_bank_attempt_data(), action insert into logic ' .
 					   'problem bank attempt table ' .
@@ -349,6 +357,7 @@ class logic_table_data {
 		} else {
 
 		// Whoopse. There is an internal coding error. Throw a coding exception.
+		logic_unlock($this->lockpointer);
 		$message = 'Internal error found in get_problem_data ' . 
                        'in mod/logic/classses/logictoolclasses/logic_tables.php.';
         throw new \coding_exception($message);
@@ -405,6 +414,7 @@ class logic_table_data {
 					}
 				} catch (Exception $e) {
 					// if the rollback fails, throw fatal error exception.
+					logic_unlock($this->lockpointer);
 					$message = 'Internal error occured in class logic_tables, ' .
 					   	'function get_problem_data(), action insert into logic problem table ' .
                         'in mod/logic/classses/local/logictoolclasses/logic_tables.php.';
@@ -436,6 +446,7 @@ class logic_table_data {
 		} else {
 		
 		// Whoopse. There is an internal coding error. Throw a coding exception.
+		logic_unlock($this->lockpointer);
 		$message = 'Internal error found in get_logicgtool_attempt_data - 1st instance ' . 
                        'in mod/logic/classses/logictoolclasses/logic_tables.php.';
         throw new \coding_exception($message);
@@ -450,6 +461,7 @@ class logic_table_data {
         if($problem_bank == false) {
         
         	// Whoopse. There is an internal coding error. Throw a coding exception.
+        	logic_unlock($this->lockpointer);
 			$message = 'Internal error found in get_logicgtool_attempt_data - 2nd instance ' . 
                        'in mod/logic/classses/logictoolclasses/logic_tables.php.';
         	throw new \coding_exception($message);
@@ -468,7 +480,7 @@ class logic_table_data {
 					
 				foreach($problemidarray as $key => $problemid) {
 							
-					// Get the ttable attempt record corresponding to the
+					// Get the ttable attempt records corresponding to the
 					// problembankattemptid and problem id.
 	
 					$ttable_attempt = $DB->get_records('logic_ttable_attempt',
@@ -513,6 +525,7 @@ class logic_table_data {
 			break;
 					
 			default:
+				logic_unlock($this->lockpointer);
 				$message = 'Internal error in get_logicgtool_attempt_data ' . 
                         '  in mod/logic/classses/logictoolclasses/logic_tables.php. '
                         . 'Invalid logictool type';
@@ -538,42 +551,48 @@ class logic_table_data {
     															 $problemexpression) {
     	global $DB;
     	
+    	require_once(__DIR__ . "/compute_correct_ttable_values.php");
+    	
     	$attemptarray = array(array());
         $attemptarrayelement = array(array());
         $FT = array("F", "T");
         $zero_one = array("0", "1");
         $x = 0;
         
-		$attemptdata = logic_ttable_attempt($problemexpression, $problemid);
+//		$attemptdata = logic_ttable_attempt($problemexpression, $problemid);
                                                     				
-		$attemptarrayflat = array_merge($attemptdata);
+//		$attemptarrayflat = array_merge($attemptdata);
 		$logicexpressionparts = explode(",", $problemexpression);
         $atomicvariables = array_shift($logicexpressionparts);
 		$length = strlen($atomicvariables);
-                        
-		foreach($attemptarrayflat as $attemptarrayelement) {
+		$interpretation_length = 2 ** $length;
+        
+        // Compute the rows corresponding to the problem expression.
+
+		foreach($logicexpressionparts as $index => $attemptarrayelement) {
+								
+			$correct_table = compute_correct_ttable_values($atomicvariables,
+														   $attemptarrayelement);
 			for($i = $x;
-				$i < count($attemptarrayelement['inputvalue'])+$x;
+				$i < $interpretation_length+$x;
 				$i++) {
-														
+													
 					$attemptarray[$i]['problembankattemptid'] = $problembankattemptid;
-                    $attemptarray[$i]['problemid'] =
-                    							$attemptarrayelement['problemid'];
-                    $attemptarray[$i]['problemexpression'] =
-                    							$attemptarrayelement['problemexpression'];
-                    $string = str_pad(decbin($i-$x), $length, 0,
-                    											STR_PAD_LEFT) . PHP_EOL;
-                    $attemptarray[$i]['atomicvariablesvalue'] =
-                    								str_replace($zero_one, $FT, $string);
-                    $attemptarray[$i]['inputvalue'] =
-                    							$attemptarrayelement['inputvalue'][$i-$x];
-                    $attemptarray[$i]['correctvalue'] =
-                    						$attemptarrayelement['correctvalue'][$i-$x];
+					$attemptarray[$i]['problemid'] =
+												$problemid;
+					$attemptarray[$i]['problemexpression']  =
+												$attemptarrayelement;
+					$string = str_pad(decbin($i-$x), $length, 0,
+																STR_PAD_LEFT) . PHP_EOL;
+					$attemptarray[$i]['atomicvariablesvalue'] =
+													str_replace($zero_one, $FT, $string);
+					$attemptarray[$i]['inputvalue'] = -1;
+					$attemptarray[$i]['correctvalue'] =  $correct_table->values[$i-$x];
+					$attemptarray[$i]['subproblemid'] =  $index+1;
 			}
 					
-            $x += count($attemptarrayelement['inputvalue']);
-		}
-				
+				$x += $interpretation_length;
+			}		
 		try {
             try {
                 $transaction = $DB->start_delegated_transaction();
@@ -588,6 +607,7 @@ class logic_table_data {
 			}
 		} catch (Exception $e) {
 				// if the rollback fails, throw fatal error exception.
+				logic_unlock($this->lockpointer);
 				$message = 'Internal error occured in class logic_tables, method ' .
 					   		'create records, action insert into logic problem table ' .
                         	'in mod/logic/classses/local/logictoolclasses/logic_tables.php.';

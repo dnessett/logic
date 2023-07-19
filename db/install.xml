@@ -62,6 +62,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="ID of the truth table problem being attempted."/>
         <FIELD NAME="problembankattemptid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The id of the problem bank being attempted."/>
         <FIELD NAME="problemid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The id of the problem being attempted."/>
+        <FIELD NAME="subproblemid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The id of the subproblem of the problem."/>
         <FIELD NAME="problemexpression" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The concatenated logicexpression under evaluation."/>
         <FIELD NAME="atomicvariablesvalue" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The string representing the values of the atomic variables."/>
         <FIELD NAME="inputvalue" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" COMMENT="The value input for the logic expression for the given interpretation. -1 => noinput; 0 => F; 1 => T."/>
