@@ -78,7 +78,6 @@ class logic_table_data {
     public function __construct($logic, $course, $cm, $lock_pointer) {
         global $DB, $USER;
         
-        require_once(__DIR__ . "/logic_ttable_attempt.php");
         require_once(__DIR__ . "/logic_ttree_attempt.php");
         require_once(__DIR__ . "/logic_derivation_attempt.php");
 
@@ -557,7 +556,6 @@ class logic_table_data {
         $attemptarrayelement = array(array());
         $FT = array("F", "T");
         $zero_one = array("0", "1");
-        $x = 0;
         
 //		$attemptdata = logic_ttable_attempt($problemexpression, $problemid);
                                                     				
@@ -566,32 +564,55 @@ class logic_table_data {
         $atomicvariables = array_shift($logicexpressionparts);
 		$length = strlen($atomicvariables);
 		$interpretation_length = 2 ** $length;
+                $number_of_subproblems = count($logicexpressionparts);
+		
+		// Compute the correct values for the subproblems
+		
+		foreach($logicexpressionparts as $index => $attemptarrayelement) {
+		
+			$correct_table_by_column[$index] = compute_correct_ttable_values(
+														   $atomicvariables,
+														   $attemptarrayelement);
+		}
+		
+		// Now transpose the array so it is by rows (i.e., each row contains
+		// the values for an intepretation and each column for a subproblem).
+		
+		$correct_table = [];
+		
+    	foreach ($correct_table_by_column as $key => $value) {
+        	foreach ($value as $subkey => $subitem) {
+            	$correct_table[$subkey][$key] = $subitem;
+        	}
+    	}
         
         // Compute the rows corresponding to the problem expression.
 
-		foreach($logicexpressionparts as $index => $attemptarrayelement) {
-								
-			$correct_table = compute_correct_ttable_values($atomicvariables,
-														   $attemptarrayelement);
-			for($i = $x;
-				$i < $interpretation_length+$x;
-				$i++) {
+		for($i = 0;
+			$i < $interpretation_length;
+			$i++) {
+			
+			$string = str_pad(decbin($i), $length, 0, STR_PAD_LEFT) . PHP_EOL;
+			
+			$string_transformed = str_replace($zero_one, $FT, $string);
+													   
+			foreach($logicexpressionparts as $index => $attemptarrayelement) {
 													
-					$attemptarray[$i]['problembankattemptid'] = $problembankattemptid;
-					$attemptarray[$i]['problemid'] =
-												$problemid;
-					$attemptarray[$i]['problemexpression']  =
-												$attemptarrayelement;
-					$string = str_pad(decbin($i-$x), $length, 0,
-																STR_PAD_LEFT) . PHP_EOL;
-					$attemptarray[$i]['atomicvariablesvalue'] =
-													str_replace($zero_one, $FT, $string);
-					$attemptarray[$i]['inputvalue'] = -1;
-					$attemptarray[$i]['correctvalue'] =  $correct_table->values[$i-$x];
-					$attemptarray[$i]['subproblemid'] =  $index+1;
-			}
-					
-				$x += $interpretation_length;
+					$attemptarray[($i*$number_of_subproblems)+$index]['problembankattemptid']
+												= $problembankattemptid;
+					$attemptarray[($i*$number_of_subproblems)+$index]['problemid']
+												= $problemid;
+					$attemptarray[($i*$number_of_subproblems)+$index]['problemexpression']
+												= $attemptarrayelement;
+					$attemptarray[($i*$number_of_subproblems)+$index]['atomicvariablesvalue']
+												= $string_transformed;
+					$attemptarray[($i*$number_of_subproblems)+$index]['inputvalue']
+												= -1;
+					$attemptarray[($i*$number_of_subproblems)+$index]['correctvalue']
+												=  $correct_table['values'][$index][$i];
+					$attemptarray[($i*$number_of_subproblems)+$index]['subproblemid']
+												=  $index+1;
+				}
 			}		
 		try {
             try {

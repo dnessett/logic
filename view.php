@@ -18,7 +18,6 @@
  * Creates the tables for a mod_logic problem bank and prints the attempts to solve it.
  *
  * @package     mod_logic
- * @copyright   2023 Dan Nessett <dnessett@yahoo.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -172,8 +171,8 @@ function process_post_data () {
 			break;
 					
 			default:
-				$message = 'Internal error in create_html in ' .
-				'mod/logic/classses/logictoolclasses/view.php. Invalid logictool type';
+				$message = 'Internal error in process_post_data in ' .
+					'mod/logic/view.php. Invalid logictool type';
 				throw new \coding_exception($message);
 	}
 
@@ -189,8 +188,8 @@ function process_post_data () {
 
 		// Whoopse. There is an internal coding error. Throw a coding exception.
 		
-		$message = 'Internal error found in get_problem_data ' . 
-                       'in mod/logic/classses/logictoolclasses/logic_tables.php.';
+		$message = 'Internal error found in process_post_data ' . 
+                       'in mod/logic/view.php';
         throw new \coding_exception($message);
     }
     
@@ -198,20 +197,56 @@ function process_post_data () {
 }
 
 function change_truthtable_data($table_data) {
+    
+    global $DB;
 
 	// Process the SaveAndExit request. First, Get the select_tag_name_array
 	// to enumerate the attempt data that may have changed. Then create a map
 	// between select_tag_names and the indexes of the attempt array.
 	
-	
 	$select_tag_name_array  = generate_select_tag_name_array($table_data);
 	
-	// now iterate over the attempt_array mapping its indices to select tag
-	// array names.
+	// Get the logic ttable attempt table rows pertinent to this problem bank
+	// attempt. This allows us to modify the input value field in those rows based on
+	// their id field.
 	
-	// Place holder until we can correctly fill in the function implmentation.
+	if (!$problem_attempt_records =
+		$DB->get_records('logic_ttable_attempt',
+		array('problembankattemptid' =>
+		$table_data->attempt_data['problembankattempt']['id']))) {
+		
+			$message = 'Internal error #1 found in change_truthtable_data ' . 
+                       'in mod/logic/view.php';
+        	throw new \coding_exception($message);
+	}
 	
-	return $select_tag_name_array;
+	foreach($problem_attempt_records as $problem_attempt_record) {
+            
+            // for each record returned by the above, set the input field in that
+            // record to the value returned by the $_POST
+            
+            $problem_attempt_record_id = $problem_attempt_record->id;
+            
+            $select_name = $problem_attempt_record->atomicvariablesvalue . '-' .
+                           $problem_attempt_record->problemid . '-' .
+                           $problem_attempt_record->subproblemid;
+            
+            // Strip newline from $select_name
+            
+            $select_name = preg_replace('~[\r\n]+~', '', $select_name);
+            
+			if (!$DB->set_field('logic_ttable_attempt',
+				'inputvalue',
+				$_POST[$select_name],
+				array('id' => $problem_attempt_record_id))) {
+		
+					$message = 'Internal error #2 found in change_truthtable_data ' . 
+								   'in mod/logic/view.php';
+					throw new \coding_exception($message);
+			}	
+        }
+	
+	return;
 
 }
 
@@ -310,7 +345,7 @@ function createhtml($table_data, $initial_form) {
 					
 			default:
 				$message = 'Internal error in create_html in ' .
-				'mod/logic/classses/logictoolclasses/view.php. Invalid logictool type';
+					'mod/logic/classses/logictoolclasses/view.php. Invalid logictool type';
 				throw new \coding_exception($message);
 	}
 }
@@ -480,6 +515,8 @@ function create_html_for_truthtable($table_data, $initial_form) {
 	
 	$select_tag_name_array = generate_select_tag_name_array($table_data);
 	
+    $offset = 0;
+	
 	foreach($problemarray as $index => $problemstring) {
 	
 		// burst the problemstring
@@ -519,9 +556,13 @@ function create_html_for_truthtable($table_data, $initial_form) {
 			
 		for($x = 0; $x < $lines_per_subproblem ; $x++) {
 		
-			$select_name_string =  $select_tag_name_array[$x];
+			$select_name_string =  $select_tag_name_array[$offset+($x*$number_of_subproblems)];
 			$select_name_string_parts =  explode("-", $select_name_string);
 			$interpretation = $select_name_string_parts[0];
+			
+			// Strip the newline from $interpretation
+			
+			$interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
 			
 			$html_body = $html_body . '
 					<tr>' . '
@@ -530,7 +571,12 @@ function create_html_for_truthtable($table_data, $initial_form) {
 			for($i = 0; $i < $number_of_subproblems; $i++) {
 				if($initial_form == true) {
 				
-					// output select tag for the form
+					// output select tag for the form. Strip the newline from
+                    // $select_name_string.
+                    
+                    $select_name_string =  $select_tag_name_array
+                    			[$offset+($x*$number_of_subproblems)+$i];
+                    $select_name_string = preg_replace('~[\r\n]+~', '', $select_name_string);
 					
 					$html_body = $html_body . '
 						<td>' . '
@@ -562,6 +608,10 @@ function create_html_for_truthtable($table_data, $initial_form) {
 					
 		$html = $html . $html_problem . $html_middle_start . $html_header .
 			$html_middle_end . $html_body . $html_problem_ending;
+			
+		// Offset used to traverse $select_tag_name_array.
+			
+		$offset = $offset + $lines_per_problem;
 	}
 	
 	// Close out the body and html sections.
