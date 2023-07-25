@@ -64,12 +64,54 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/logic:view', $context);
 
+// Create $percentage in case the grade can be calculated automatically and displayed
+// on the result page of a Submit request.
+
+$percentage = 0;
+
 if(!empty($_POST)) {
 
 	// view.php entered as the result of a $_POST request.
 	
-	process_post_data();
-	$initial_form = false;
+    global $SESSION;
+
+	$table_data = $SESSION->table_data;
+	
+	$display_results = process_post_data($table_data);
+
+	if($display_results == 'SaveAndExit') {
+	
+		// go back to course page
+		$url = new moodle_url('/course/view.php', array('id' => $course->id));
+		redirect($url);
+		return;      
+	} elseif($display_results == 'Submit') {
+	
+	// Mark this problem as submitted
+	
+	$table_data->attempt_data['problembankattempt']['submitted'] = true;
+	
+	if (!$DB->set_field('logic_problem_bank_attempt',
+		'submitted', true,
+		array('id' => $table_data->attempt_data['problembankattempt']['id']))) {
+
+		$message = 'Internal error #2 found in change_truthtable_data ' . 
+					   'in mod/logic/view.php';
+		throw new \coding_exception($message);
+	}	
+	
+	// Get percentage of correct answers
+	
+	$percentage = compute_percentage_of_right_answers($table_data);
+	
+	// Report $percentage using the grade API. For truth table problem banks,
+	// $percentage will be printed at the end of the html output when a
+	// Submit post is processed.
+	
+	} else {
+		$message = 'Internal error in ' . 'mod/logic/view.php. Invalid $_POST type';
+		throw new \coding_exception($message);
+	}
 	
 } else {
 
@@ -86,14 +128,26 @@ if(!empty($_POST)) {
 	$lock_pointer = logic_lock();
 	$table_data = new logic_table_data($logic, $course, $cm, $lock_pointer);
 	logic_unlock($lock_pointer);
+	
+	// Has the problem already been submitted? If so, set $display_results to
+	// 'FinshedProblem' so that only the prevous results are displayed.
+	
+	if($table_data->attempt_data['problembankattempt']['submitted'] == true) {
+		$display_results = 'FinshedProblem';
+		
+		// Compute percentage result for display on results page
+		
+		$percentage = compute_percentage_of_right_answers($table_data);
+		
+	} else {
 
 	// Set up a moodle session to hold the table_data class instance between calls to
 	// view.php by the attempt form processing code. Using moodle $SESSION rather than
 	// PHP $_SESSION, since the former is per user, while the latter is not.
 
 	$SESSION->table_data = $table_data;
-	$initial_form = true;
-
+	$display_results = 'InitialForm';
+	}
 }
 
 // Trigger course_module_viewed event and completion.
@@ -112,7 +166,7 @@ $output = $PAGE->get_renderer('mod_logic');
 
 // Create the HTML form
 
-$htmlstring = createhtml($table_data, $initial_form);
+$htmlstring = createhtml($table_data, $display_results, $percentage);
 
 // Use the table_data_data instance to output the HTML for the view page.
 
@@ -136,64 +190,55 @@ return;
 
 }
 
-function process_post_data () {
+function process_post_data($table_data) {
 
-	// process the $_POST data. If the $_POST is for the "Submit" button, record the
+	// Process the $_POST data. Whatever value of $_POST, change $table_data to reflect
+	// the input from the form. If the $_POST is for the "Submit" button, record the
 	// results of the attempt and terminate the attempt. Otherwise, if the $_POST is
-	// for the "SaveAndExit button, process the $_POST data and re-display the
-	// attempt form.
-    
-    global $SESSION;
+	// for the "SaveAndExit button, process the $_POST data and return.
+	
+	// What logic tool are we processing?
+		
+	switch ($table_data->logictool) {
+		case "truthtable":
+	
+			change_truthtable_data($table_data);
+	
+		break;
+	
+		case "truthtree":
+	
+			change_truthtree_data($table_data);
+		
+		break;
+			
+		case "derivation":
+	
+			change_derivation_data($table_data);
 
-	$table_data = $SESSION->table_data;
+		break;
+			
+		default:
+			$message = 'Internal error in process_post_data in ' .
+				'mod/logic/view.php. Invalid logictool type';
+			throw new \coding_exception($message);
+	}
 
 	if ($_POST['action'] == 'SaveAndExit') {
 	
-	// What logic tool are we processing?
-	
-		switch ($table_data->logictool) {
-			case "truthtable":
-			
-				return change_truthtable_data($table_data);
-			
-			break;
-			
-			case "truthtree":
-			
-				return change_truthtree_data($table_data);
-				
-			break;
-					
-			case "derivation":
-			
-				return change_derivation_data($table_data);
-
-			break;
-					
-			default:
-				$message = 'Internal error in process_post_data in ' .
-					'mod/logic/view.php. Invalid logictool type';
-				throw new \coding_exception($message);
-	}
-
-	return;
+		return 'SaveAndExit';
 
 	} elseif ($_POST['action'] == 'Submit') {
 
-	// Process the Submit request
-
-	return;
+		return 'Submit';
 
 	} else {
 
 		// Whoopse. There is an internal coding error. Throw a coding exception.
-		
 		$message = 'Internal error found in process_post_data ' . 
-                       'in mod/logic/view.php';
-        throw new \coding_exception($message);
-    }
-    
-    return;
+					   'in mod/logic/view.php';
+		throw new \coding_exception($message);
+	}
 }
 
 function change_truthtable_data($table_data) {
@@ -214,7 +259,6 @@ function change_truthtable_data($table_data) {
 		$DB->get_records('logic_ttable_attempt',
 		array('problembankattemptid' =>
 		$table_data->attempt_data['problembankattempt']['id']))) {
-		
 			$message = 'Internal error #1 found in change_truthtable_data ' . 
                        'in mod/logic/view.php';
         	throw new \coding_exception($message);
@@ -246,49 +290,11 @@ function change_truthtable_data($table_data) {
 			}	
         }
 	
-	return;
+	return false;
 
 }
 
 function generate_select_tag_name_array($table_data) {
-
-// Save in case new code doesn't work
-/*
-	$problemarray = $table_data->problemstrings;
-        
-        $select_tag_name_array = array();
-
-	foreach($problemarray as $index => $problemstring) {
-	
-		// burst the problemstring
-		
-		$logicexpressionparts = explode(",", $table_data->problemstrings[$index]);
-        $atomicvariables = array_shift($logicexpressionparts);
-	
-		// Fill in the problem number in html
-		
-		$problem_number = $index + 1;		
-		$number_of_subproblems = count($logicexpressionparts);
-		$length = strlen($atomicvariables);
-		$lines_per_subproblem = 2 ** $length;
-		$lines_per_problem = $number_of_subproblems * $lines_per_subproblem;
-		
-		for($x = 0; $x < $number_of_subproblems; $x++) {
-			for($y = 0; $y < $lines_per_subproblem; $y++) {
-				$interpretation = ((array)
-					($table_data->attempt_data['attemptarray'][$y]))['atomicvariablesvalue'];
-			
-				// retrieving the string from the attempt array leaves a newline at the end.
-				// Getrid of it.
-			
-				$interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
-
-				array_push($select_tag_name_array, $interpretation
-							. '-' . $problem_number . '-' . $x+1);
-			}
-		}
-	}
-	*/
 	
 	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
 		
@@ -303,43 +309,65 @@ function generate_select_tag_name_array($table_data) {
 
 function change_truthtree_data($table_data) {
 
-	// create the html for a truthtree problem set.
+	// Process the SaveAndExit request.
 
-	return $html;
+	return;
 }
 
 function change_derivation_data($table_data) {
 
-	// create the html for a derivation problem set.
+	// Process the SaveAndExit request.
 
-	return $html;
+	return;
 }
 
-function createhtml($table_data, $initial_form) {
+function compute_percentage_of_right_answers($table_data) {
 
-	// Create the html to display on the view page. If $initial_form == true, generate
-	// the form for the problem set. If $initial_form == false, generate the html for the
-	// result of the problem set (i.e., the result of the submit request.) In
-	// either case return the html string to the caller.
+	// If this is a truth table problem, compute the percentage of answers
+	// that were incorrect in order to create a grade.
+	
+	$errors = 0;		
+	$answers = count($table_data->attempt_data['attemptarray']);
+	if($table_data->logictool == "truthtable") {
+		for($i=0; $i<$answers; $i++) {
+			if($table_data->attempt_data['attemptarray'][$i]->inputvalue !=
+			   $table_data->attempt_data['attemptarray'][$i]->correctvalue) {
+					$errors += 1;
+			}
+		}	
+	}
+	
+	$percentage = (($answers-$errors)/$answers) * 100;
+	return $percentage;
+
+}
+
+function createhtml($table_data, $display_results, $percentage) {
+
+	// Create the html to display on the view page. If $display_results == 'InitialForm',
+	// generate the form for the problem set. If $display_results == 'Submit' or $display_results == 'Submit', generate
+	// the html for the result of the problem set (i.e., the result of the submit
+	// request.) In either case return the html string to the caller.
 
 	// Determine which logic tool to use.
 
 	switch ($table_data->logictool) {
 			case "truthtable":
 			
-				return create_html_for_truthtable($table_data, $initial_form);
+				return create_html_for_truthtable($table_data, $display_results,
+																		$percentage);
 			
 			break;
 			
 			case "truthtree":
 			
-				return create_html_for_truthtree($table_data, $initial_form);
+				return create_html_for_truthtree($table_data, $display_results);
 				
 			break;
 					
 			case "derivation":
 			
-				return create_html_for_derivation($table_data, $initial_form);
+				return create_html_for_derivation($table_data, $display_results);
 
 			break;
 					
@@ -350,7 +378,7 @@ function createhtml($table_data, $initial_form) {
 	}
 }
 
-function create_html_for_truthtable($table_data, $initial_form) {
+function create_html_for_truthtable($table_data, $display_results, $percentage) {
 
 	// create the html for a truthtable problem set.
 	
@@ -391,7 +419,9 @@ function create_html_for_truthtable($table_data, $initial_form) {
 	$html_problem_ending = '
 				</table>
 			</div>';
-	$html_ending = '
+			
+	if($display_results == 'InitialForm') {
+		$html_ending = '
 			<div class="col-2">
 				<table class="table" style="border: none;">
 					<tr>
@@ -407,6 +437,22 @@ function create_html_for_truthtable($table_data, $initial_form) {
     	</form>
     </body>
 </html>';
+	} elseif ($display_results == 'Submit' or $display_results == 'FinshedProblem') {
+		$html_ending = '
+			<div class="col-2">
+				<br>
+				<br>
+				<p style="color:blue;font-size:24px;"> Score: ' . 
+							number_format((float)$percentage, 1, '.', '') . '%</p>
+			</div>
+    	</form>
+    </body>
+</html>';
+	} else {
+		$message = 'Internal error found in create_html_for_truthtable ' . 
+								   'in mod/logic/view.php';
+		throw new \coding_exception($message);
+	}
 
 	$html_middle_start = '
 					<thead>
@@ -419,96 +465,6 @@ function create_html_for_truthtable($table_data, $initial_form) {
 	// Set up the overall document html
 	
 	$html = $html_begining;
-	
-/*	Save in case new code doesn't work.
-	// Get the problem array
-	
-	$problemarray = $table_data->problemstrings;
-	
-	foreach($problemarray as $index => $problemstring) {
-	
-		// Fill in the problem number in html
-		
-		$problem_number = $index + 1;
-		
-		$html_problem = '
-		<h3>Problem ' . $problem_number . '</h3>
-			<div class="col-2">
-				<table class="table table-striped">';
-	
-		// burst the problemstring
-		
-		$logicexpressionparts = explode(",", $table_data->problemstrings[$index]);
-        $atomicvariables = array_shift($logicexpressionparts);
-
-		$html_header = '
-						<th class="col">' . $atomicvariables . '</th>';
-		foreach($logicexpressionparts as $logicexpression) {
-		
-			$html_header = $html_header . '
-						<th class="col">' . $logicexpression . '</th>';
-		
-		}
-		
-// create html for truthtable form
-			
-		$html_body = '
-					<tbody>';
-			
-		$number_of_subproblems = count($logicexpressionparts);
-		$length = strlen($atomicvariables);
-		$lines_per_subproblem = 2 ** $length;
-			
-		for($x = 0; $x < $lines_per_subproblem; $x++) {
-			$interpretation =  ((array) ($table_data->attempt_data['attemptarray'][$x]))['atomicvariablesvalue'];
-			
-			// retrieving the string from the attempt array leaves a newline at the end.
-			// Getrid of it.
-			
-			$interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
-			
-			$html_body = $html_body . '
-					<tr>' . '
-                        <td>' . $interpretation . '</td>';
-                        
-			for($i = 0; $i < $number_of_subproblems; $i++) {
-				if($initial_form == true) {
-				
-					// output select tag for the form
-					
-					$html_body = $html_body . '
-						<td>' . '
-							<select name= "' . (string) $interpretation . '-' . $problem_number .
-									'-' . $i+1 . '">
-								<option value="-1"></option>
-								<option value="0">F</option>
-								<option value="1">T</option>
-							</select>
-						</td>';
-							
-				} else {
-					
-					// output the result for the submit results
-				
-				}
-
-			// create html for truthtable problem
-		
-			}
-			
-			$html_body = $html_body . '
-					</tr>';
-		}
-			
-		// close the html body
-				
-		$html_body = $html_body . '
-					</tbody>';
-					
-		$html = $html . $html_problem . $html_middle_start . $html_header .
-			$html_middle_end . $html_body . $html_problem_ending;
-	}
-*/
 	$problemarray = $table_data->problemstrings;
 	
 	// Get the array of select data names.
@@ -553,6 +509,10 @@ function create_html_for_truthtable($table_data, $initial_form) {
 			
 		$html_body = '
 					<tbody>';
+					
+		$FT = array("F", "T");
+		$zero_one   = array("0", "1");
+        $false_true = array("false", "true");
 			
 		for($x = 0; $x < $lines_per_subproblem ; $x++) {
 		
@@ -569,7 +529,7 @@ function create_html_for_truthtable($table_data, $initial_form) {
                         <td>' . $interpretation . '</td>';
                         
 			for($i = 0; $i < $number_of_subproblems; $i++) {
-				if($initial_form == true) {
+				if($display_results == 'InitialForm') {
 				
 					// output select tag for the form. Strip the newline from
                     // $select_name_string.
@@ -577,24 +537,68 @@ function create_html_for_truthtable($table_data, $initial_form) {
                     $select_name_string =  $select_tag_name_array
                     			[$offset+($x*$number_of_subproblems)+$i];
                     $select_name_string = preg_replace('~[\r\n]+~', '', $select_name_string);
+                    
+                    $selected_option = $table_data->attempt_data['attemptarray']
+                    				[$offset+($x*$number_of_subproblems)+$i]->inputvalue;
+
+                    if($selected_option == -1) {
+                    	$options = '
+								<option value="-1" selected></option>
+								<option value="0">F</option>
+								<option value="1">T</option>';
+                    } elseif($selected_option == 0) {
+                         $options = '
+								<option value="-1"></option>
+								<option value="0" selected>F</option>
+								<option value="1">T</option>';
+					} else {
+					     $options = '
+								<option value="-1"></option>
+								<option value="0">F</option>
+								<option value="1" selected>T</option>';
+					}
 					
 					$html_body = $html_body . '
 						<td>' . '
-							<select name="' . $select_name_string . '">
-								<option value="-1"></option>
-								<option value="0">F</option>
-								<option value="1">T</option>
+							<select name="' . $select_name_string . '">' .
+								$options . '
 							</select>
 						</td>';
 							
-				} else {
+				} elseif($display_results == 'Submit' or
+											$display_results == 'FinshedProblem') {
 					
-					// output the result for the submit results
+					// output the result for the display request. Get the input
+					// value and the correct value.
+					
+					$select_input = $table_data->attempt_data['attemptarray']
+									[$offset+($x*$number_of_subproblems)+$i]->inputvalue;
+                    $correct_value = $table_data->attempt_data['attemptarray']
+                    				[$offset+($x*$number_of_subproblems)+$i]->correctvalue;
+                    				
+                    // Insure $correct_value is interpreted as either "T" or "F",
+                    // not as "1" or "NULL"
+                    
+                    $correct_value_normalized = str_replace($zero_one, $FT, $correct_value);
+                    $select_input_normalized = str_replace($zero_one, $FT, $select_input);
+                    
+                    if($select_input_normalized != $correct_value_normalized) {
+                    	$html_body = $html_body . '
+							<td><font color="red"><b>' .
+								$correct_value_normalized . '</b></font>
+							</td>';
+                    } else {
+                    	$html_body = $html_body . '
+							<td>' .
+								$correct_value_normalized . '
+							</td>';                    
+                    }
 				
+				} else {
+					$message = 'Internal error found in create_html_for_truthtable ' . 
+                    'in mod/logic/view.php';
+        			throw new \coding_exception($message);
 				}
-
-			// create html for truthtable problem
-		
 			}
 			
 			$html_body = $html_body . '

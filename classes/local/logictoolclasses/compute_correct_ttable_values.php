@@ -33,7 +33,7 @@ use D3lph1\Boollet\TruthTable;
 
 function compute_correct_ttable_values($atomicvariables, $expression) {
 	$lexer = Lexer::default();
-        $enhancedexpression = expression_prefix_from_atomicvariables($atomicvariables) .
+    $enhancedexpression = expression_prefix_from_atomicvariables($atomicvariables) .
                                                '⋀(' . $expression . ')';
 	$input = new StringInputReader($enhancedexpression);
 	$parser = new ShuntingYardParser($lexer);
@@ -47,6 +47,18 @@ function compute_correct_ttable_values($atomicvariables, $expression) {
 }
 
 function expression_prefix_from_atomicvariables($atomicvariables) {
+
+	// This creates a prefix comprising the atomic variables listed in order
+	// as a tautology, e.g. for atomic variables x, y and z:
+	// ((x⋁!x)⋀(y⋁!y)⋀(z⋁!z)). This is necessary since the package (Boollet) used
+	// for computing the correct values of a boolean expression does not
+	// provide a way to specify the order of the atomic variables. Instead,
+	// it puts them in the order in which they appear in the expression.
+	// This means if the boolean expression has subexpressions that form
+	// the subproblems of the truth table, potentially the output of Boollet will not
+	// put the correct values in the same order in all subproblems. Consequently,
+	// I have to force the order by conjoining the subproblems with the above
+	// specified tautoloty, which does not change the truth value of the expression.
     
     // Get the atomic variables as elements of an array
     
