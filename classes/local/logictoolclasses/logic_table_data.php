@@ -534,8 +534,6 @@ class logic_table_data {
         return;
     }
     
-    
-
     /**
 	 * Create table data associated with a truth table problem in the problem bank. If the
 	 * problem records corresponding to the parameters of the call do not exist,

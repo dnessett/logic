@@ -298,9 +298,9 @@ function generate_select_tag_name_array($table_data) {
 	
 	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
 		
-		$interpretation = $table_data->attempt_data['attemptarray'][$i]->atomicvariablesvalue;
-		$problem_id = $table_data->attempt_data['attemptarray'][$i]->problemid;
-		$subproblem_id = $table_data->attempt_data['attemptarray'][$i]->subproblemid;
+		$interpretation = ((array) $table_data->attempt_data['attemptarray'][$i])['atomicvariablesvalue'];
+		$problem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['problemid'];
+		$subproblem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['subproblemid'];
 		$select_tag_name_array[$i] = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
 	
 	}
@@ -493,15 +493,15 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 		
 		$html_problem = '
 		<h3>Problem ' . $problem_number . '</h3>
-			<div class="col-2">
+			<div class="col-2 text-center">
 				<table class="table table-striped">';
 
 		$html_header = '
-						<th class="col">' . $atomicvariables . '</th>';
+						<th class="col text-center">' . $atomicvariables . '</th>';
 		foreach($logicexpressionparts as $logicexpression) {
 		
 			$html_header = $html_header . '
-						<th class="col">' . $logicexpression . '</th>';
+						<th class="col text-center">' . $logicexpression . '</th>';
 		
 		}
 		
@@ -526,7 +526,7 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 			
 			$html_body = $html_body . '
 					<tr>' . '
-                        <td>' . $interpretation . '</td>';
+                        <td class="text-center">' . $interpretation . '</td>';
                         
 			for($i = 0; $i < $number_of_subproblems; $i++) {
 				if($display_results == 'InitialForm') {
@@ -538,8 +538,8 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
                     			[$offset+($x*$number_of_subproblems)+$i];
                     $select_name_string = preg_replace('~[\r\n]+~', '', $select_name_string);
                     
-                    $selected_option = $table_data->attempt_data['attemptarray']
-                    				[$offset+($x*$number_of_subproblems)+$i]->inputvalue;
+                    $selected_option = ((array) $table_data->attempt_data['attemptarray']
+                    				[$offset+($x*$number_of_subproblems)+$i])['inputvalue'];
 
                     if($selected_option == -1) {
                     	$options = '
@@ -559,7 +559,7 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 					}
 					
 					$html_body = $html_body . '
-						<td>' . '
+						<td class="text-center">' . '
 							<select name="' . $select_name_string . '">' .
 								$options . '
 							</select>
@@ -584,12 +584,12 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
                     
                     if($select_input_normalized != $correct_value_normalized) {
                     	$html_body = $html_body . '
-							<td><font color="red"><b>' .
+							<td class="text-center"><font color="red"><b>' .
 								$correct_value_normalized . '</b></font>
 							</td>';
                     } else {
                     	$html_body = $html_body . '
-							<td>' .
+							<td class="text-center">' .
 								$correct_value_normalized . '
 							</td>';                    
                     }
