@@ -245,13 +245,12 @@ function change_truthtable_data($table_data) {
     
     global $DB;
 
-	// Process the SaveAndExit request. First, Get the select_tag_name_array
-	// to enumerate the attempt data that may have changed. Then create a map
-	// between select_tag_names and the indexes of the attempt array.
+	// Process the SaveAndExit or Submit request. First, update the table_data input
+	// values from the $_POST data.
 	
-	$select_tag_name_array  = generate_select_tag_name_array($table_data);
+	update_table_data_input_values_from_POST($table_data);
 	
-	// Get the logic ttable attempt table rows pertinent to this problem bank
+	// Then get the logic ttable attempt table rows pertinent to this problem bank
 	// attempt. This allows us to modify the input value field in those rows based on
 	// their id field.
 	
@@ -279,6 +278,9 @@ function change_truthtable_data($table_data) {
             
             $select_name = preg_replace('~[\r\n]+~', '', $select_name);
             
+            // set inputvalue in both $table_data and logic_ttable_attempt table
+            // to value in select field
+            
 			if (!$DB->set_field('logic_ttable_attempt',
 				'inputvalue',
 				$_POST[$select_name],
@@ -294,17 +296,27 @@ function change_truthtable_data($table_data) {
 
 }
 
-function generate_select_tag_name_array($table_data) {
+function update_table_data_input_values_from_POST(&$table_data) {
 	
 	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
 		
 		$interpretation = ((array) $table_data->attempt_data['attemptarray'][$i])['atomicvariablesvalue'];
+		
+        // Strip whitespace from $interpretation
+            
+        $interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
+        
 		$problem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['problemid'];
 		$subproblem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['subproblemid'];
-		$select_tag_name_array[$i] = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
-	
+		$select_tag_name = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
+                
+        // Strip newline from $select_name
+            
+        $select_name = preg_replace('~[\r\n]+~', '', $select_tag_name);
+        
+		$table_data->attempt_data['attemptarray'][$i]['inputvalue'] = $_POST[$select_tag_name];														$_POST[$select_tag_name];
 	}
-	return $select_tag_name_array;
+	return;
 }
 
 function change_truthtree_data($table_data) {
@@ -330,8 +342,8 @@ function compute_percentage_of_right_answers($table_data) {
 	$answers = count($table_data->attempt_data['attemptarray']);
 	if($table_data->logictool == "truthtable") {
 		for($i=0; $i<$answers; $i++) {
-			if($table_data->attempt_data['attemptarray'][$i]->inputvalue !=
-			   $table_data->attempt_data['attemptarray'][$i]->correctvalue) {
+			if(((array)$table_data->attempt_data['attemptarray'][$i])['inputvalue'] !=
+			   ((array)$table_data->attempt_data['attemptarray'][$i])['correctvalue']) {
 					$errors += 1;
 			}
 		}	
@@ -510,9 +522,9 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 		$html_body = '
 					<tbody>';
 					
-		$FT = array("F", "T");
+		$FT = array((string) "F", (string) "T");
 		$zero_one   = array("0", "1");
-        $false_true = array("false", "true");
+        $false_true = array((string) "false", (string) "true");
 			
 		for($x = 0; $x < $lines_per_subproblem ; $x++) {
 		
@@ -571,15 +583,21 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 					// output the result for the display request. Get the input
 					// value and the correct value.
 					
-					$select_input = $table_data->attempt_data['attemptarray']
-									[$offset+($x*$number_of_subproblems)+$i]->inputvalue;
-                    $correct_value = $table_data->attempt_data['attemptarray']
-                    				[$offset+($x*$number_of_subproblems)+$i]->correctvalue;
+					$select_input = ((array)$table_data->attempt_data['attemptarray']
+									[$offset+($x*$number_of_subproblems)+$i])['inputvalue'];
+                    $correct_value = ((array)$table_data->attempt_data['attemptarray']
+                    				[$offset+($x*$number_of_subproblems)+$i])['correctvalue'];
+                    
+                    // If inputvalue == -1, make it the opposite of correctvalue, so
+                    // the following test will always result in a red colored value
+                    
+                    if($select_input == -1) {$select_input = 1 - $correct_value;}
                     				
                     // Insure $correct_value is interpreted as either "T" or "F",
                     // not as "1" or "NULL"
                     
-                    $correct_value_normalized = str_replace($zero_one, $FT, $correct_value);
+                    if($correct_value == false) {$correct_value_normalized = "F";
+                        } else {$correct_value_normalized = "T";}
                     $select_input_normalized = str_replace($zero_one, $FT, $select_input);
                     
                     if($select_input_normalized != $correct_value_normalized) {
@@ -623,4 +641,17 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 	$html = $html . $html_ending;
 
 	return $html;
+}
+
+function generate_select_tag_name_array($table_data) {
+	
+	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
+		
+		$interpretation = ((array) $table_data->attempt_data['attemptarray'][$i])['atomicvariablesvalue'];
+		$problem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['problemid'];
+		$subproblem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['subproblemid'];
+		$select_tag_name_array[$i] = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
+	
+	}
+	return $select_tag_name_array;
 }
