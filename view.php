@@ -248,7 +248,7 @@ function change_truthtable_data($table_data) {
 	// Process the SaveAndExit or Submit request. First, update the table_data input
 	// values from the $_POST data.
 	
-	update_table_data_input_values_from_POST($table_data);
+	update_table_data_input_values_from_POST($table_data->attempt_data['attemptarray']);
 	
 	// Then get the logic ttable attempt table rows pertinent to this problem bank
 	// attempt. This allows us to modify the input value field in those rows based on
@@ -296,25 +296,25 @@ function change_truthtable_data($table_data) {
 
 }
 
-function update_table_data_input_values_from_POST(&$table_data) {
+function update_table_data_input_values_from_POST(&$attempt_array) {
 	
-	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
+	for ($i=0; $i<count($attempt_array); $i++) {
 		
-		$interpretation = ((array) $table_data->attempt_data['attemptarray'][$i])['atomicvariablesvalue'];
+		$interpretation = $attempt_array[$i]->atomicvariablesvalue;
 		
         // Strip whitespace from $interpretation
             
         $interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
         
-		$problem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['problemid'];
-		$subproblem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['subproblemid'];
+		$problem_id = $attempt_array[$i]->problemid;
+		$subproblem_id = $attempt_array[$i]->subproblemid;
 		$select_tag_name = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
                 
         // Strip newline from $select_name
             
         $select_name = preg_replace('~[\r\n]+~', '', $select_tag_name);
         
-		$table_data->attempt_data['attemptarray'][$i]['inputvalue'] = $_POST[$select_tag_name];														$_POST[$select_tag_name];
+        ($attempt_array[$i])->inputvalue = $_POST[$select_tag_name];
 	}
 	return;
 }
