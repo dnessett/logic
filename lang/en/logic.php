@@ -25,13 +25,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['derivation'] = 'Derivation';
 $string['logicexpressions'] = 'Set of expressions to evaluate';
 $string['logicfieldset'] = 'Logic Fieldset';
 $string['logicname'] = 'Logic';
 $string['logicname_help'] = 'Logic Help';
 $string['logicsettings'] = 'Logic Settings';
 $string['logictool'] = 'Logic Tool';
+$string['mode'] = 'Problem Mode';
 $string['logic:addinstance'] = 'Add a new logic tool use';
 $string['logic:view'] = 'View logic information';
 $string['logic:attempt'] = 'Attempt logic tool use';
@@ -43,3 +43,6 @@ $string['pluginname'] = 'Logic';
 $string['pluginadministration'] = 'Logic administration';
 $string['truthtable'] = 'Truth Table';
 $string['truthtree'] = 'Truth Tree';
+$string['derivation'] = 'Derivation';
+$string['assignment'] = 'Assignment';
+$string['practice'] = 'Practice Problem';

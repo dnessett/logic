@@ -8,3 +8,5 @@ xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x);uvw,u⋀w,u⊕v,(u⋀w)→(u⊕v)
 xyz,y⊕x,z⋀x,(y⊕x)→(z⋀x);uvw,u⋀w,u⊕v,(u⋀w)→(u⊕v);tuvw,t⊕v,!u→w,(t⊕v)⋀(!u→w)
 
 xyz,z⊕x,y⋀x,(z⊕x)→(y⋀x)
+
+abcdefgh,a⊕c,!b→d,(a⊕c)⋀(!b→d), e⋀!f, g⋀h, (a⊕c)⋀(!b→d)→((e⋀!f)⊕(g⋀h))

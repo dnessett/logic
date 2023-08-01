@@ -170,15 +170,23 @@ $htmlstring = createhtml($table_data, $display_results, $percentage);
 
 // Use the table_data_data instance to output the HTML for the view page.
 
-outputhtml($htmlstring, $output);
+outputhtml($htmlstring, $output, $table_data);
 
 return;
 
-function outputhtml($htmlstring, $output) {
+function outputhtml($htmlstring, $output, $table_data) {
 
 echo $output->header();
 
-$pagetitle = "Problems";
+if($table_data->practice == false) {
+
+	$pagetitle = "Problems (assignment)";
+	
+} else {
+
+	$pagetitle = "Problems (practice)";
+	
+}
 
 echo $output->heading($pagetitle);
 
@@ -297,24 +305,30 @@ function change_truthtable_data($table_data) {
 }
 
 function update_table_data_input_values_from_POST(&$attempt_array) {
+
+	$temp_obj = new stdClass();
 	
 	for ($i=0; $i<count($attempt_array); $i++) {
+	
+		// Use of $temp_pbj required to work around a bug in PHP
+	        
+        $temp_obj = (object) $attempt_array[$i];
 		
-		$interpretation = $attempt_array[$i]->atomicvariablesvalue;
+		$interpretation = $temp_obj->atomicvariablesvalue;
 		
         // Strip whitespace from $interpretation
             
         $interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
         
-		$problem_id = $attempt_array[$i]->problemid;
-		$subproblem_id = $attempt_array[$i]->subproblemid;
+		$problem_id = $temp_obj->problemid;
+		$subproblem_id = $temp_obj->subproblemid;
 		$select_tag_name = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
                 
         // Strip newline from $select_name
             
         $select_name = preg_replace('~[\r\n]+~', '', $select_tag_name);
         
-        ($attempt_array[$i])->inputvalue = $_POST[$select_tag_name];
+        $temp_obj->inputvalue = $_POST[$select_tag_name];
 	}
 	return;
 }
@@ -644,12 +658,18 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 }
 
 function generate_select_tag_name_array($table_data) {
+
+	$temp_opj = new stdClass();
 	
 	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
+	
+		// Use of temp_obj required to work around a bug in PHP
+	
+		$temp_obj = (object) $table_data->attempt_data['attemptarray'][$i];
 		
-		$interpretation = ((array) $table_data->attempt_data['attemptarray'][$i])['atomicvariablesvalue'];
-		$problem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['problemid'];
-		$subproblem_id = ((array) $table_data->attempt_data['attemptarray'][$i])['subproblemid'];
+		$interpretation = $temp_obj->atomicvariablesvalue;
+		$problem_id = $temp_obj->problemid;
+		$subproblem_id = $temp_obj->subproblemid;
 		$select_tag_name_array[$i] = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
 	
 	}

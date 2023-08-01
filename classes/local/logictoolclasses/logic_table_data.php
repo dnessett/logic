@@ -65,6 +65,9 @@ class logic_table_data {
      public $attempt_data;
 	/** @var The lock pointer. Needed here so that exception code can unlock mutex. */
 	 private $lock_pointer;
+	/** @var Whether the problems to be solved will be graded or are just for practice */
+	 public $practice;
+
 
     // Constructor =============================================================
     /**
@@ -95,7 +98,8 @@ class logic_table_data {
             // Whoopse. We have an internal coding error.
             logic_unlock($this->lock_pointer);
             $message = 'Internal error found in class logic_tables constructor ' . 
-                       'in mod/logic/classses/logictoolclasses/logic_tables.php.';
+                       'in mod/logic/classses/logictoolclasses/logic_tables.php.' .
+                       'Could not find the moodle supplied id in the logic table';
             throw new \coding_exception($message);
         }
         
@@ -111,13 +115,30 @@ class logic_table_data {
         $this->timemodified = strval(time());
         $this->intro = $logic_record[$logic->id]->intro;
         $this->user_id = $USER->id;
-         
+        	
+        // Record whether the problem bank is to be graded or not.
+        
+        switch ($logic_record[$logic->id]->mode) {
+			case "assignment":
+				$this->practice = FALSE;
+			break;
+			case "practice":
+				$this->practice = TRUE;
+			break;
+			default:
+				logic_unlock($this->lock_pointer);
+				$message = 'Internal error in logic_table_data constructor ' . 
+                        '  in mod/logic/classses/logictoolclasses/logic_tables.php. '
+                        . 'Invalid practice specification';
+				throw new \coding_exception($message);
+        }
+      
         // Create the $attempt_data array.
 
 		$this->get_attempt_info($course, $cm);
 		
     }      
-      
+
 	/**
 	 * Gets the class instances associated with logic tables. If the table entries
 	 * do not exist for these instances, it creates them.
@@ -152,7 +173,7 @@ class logic_table_data {
     
     /**
 	 * Get table data associated with the problem bank. If the problem bank record
-	 * corresponding to the parameters of the call does not exist, creates it.
+	 * corresponding to the parameters of the call does not exist, create it.
 	 *
 	 * @param object $logic - the id of the logic table for mod_logic.
 	 * @param object $course - the row from the course table for the course we belong to.
@@ -185,8 +206,8 @@ class logic_table_data {
 	        									
 	        $problemidstring = strval($problem_next_id);
 	        
-	        for ($i = $problem_next_id+1; $i <= $numberofproblems; $i++) {
-				$problemidstring = $problemidstring . ',' . strval($i);
+	        for ($i = 1; $i < $numberofproblems; $i++) {
+				$problemidstring = $problemidstring . ',' . strval($i+$problem_next_id);
 			}
         
 	        // create problem bank object
@@ -251,7 +272,7 @@ class logic_table_data {
     /**
 	 * Get table data associated with the problem bank attempt. If the problem bank
 	 * attempt record corresponding to the parameters of the call does not exist,
-	 * creates it.
+	 * create it.
 	 */
  
     protected function get_problem_bank_attempt_data() {
@@ -292,6 +313,7 @@ class logic_table_data {
         	$this->attempt_data['problembankattempt']['problembankid'] = $problem_bank_id;
 			$this->attempt_data['problembankattempt']['userid'] = $this->user_id;
 			$this->attempt_data['problembankattempt']['submitted'] = false;
+			$this->attempt_data['problembankattempt']['practice'] = $this->practice;
 
  			// Create the problem bank attempt record
         
@@ -331,6 +353,8 @@ class logic_table_data {
 										$problem_bank_attempt_record->problembankid;
 			$this->attempt_data['problembankattempt']['userid'] =
 										$problem_bank_attempt_record->userid;
+			$this->attempt_data['problembankattempt']['practice'] = 
+										$problem_bank_attempt_record->practice;
 			$this->attempt_data['problembankattempt']['submitted'] =
 										$problem_bank_attempt_record->submitted;
 			}
@@ -490,7 +514,7 @@ class logic_table_data {
         				
         				// If there is no record corresponding to the truth
         				// table attempt, fill in table data and create it.
-        				// Done in get_ttable_attempt().
+        				// Work done in get_ttable_attempt().
         					
         				$problemexpression = $this->problemstrings[$key];
 						$attemptarrayelement[$key] = $this->get_ttable_attempt(
@@ -554,10 +578,6 @@ class logic_table_data {
         $attemptarrayelement = array(array());
         $FT = array("F", "T");
         $zero_one = array("0", "1");
-        
-//		$attemptdata = logic_ttable_attempt($problemexpression, $problemid);
-                                                    				
-//		$attemptarrayflat = array_merge($attemptdata);
 		$logicexpressionparts = explode(",", $problemexpression);
         $atomicvariables = array_shift($logicexpressionparts);
 		$length = strlen($atomicvariables);
@@ -594,22 +614,22 @@ class logic_table_data {
 			
 			$string_transformed = str_replace($zero_one, $FT, $string);
 													   
-			foreach($logicexpressionparts as $index => $attemptarrayelement) {
+			foreach($logicexpressionparts as $next => $attemptarrayelement) {
 													
-					$attemptarray[($i*$number_of_subproblems)+$index]['problembankattemptid']
+					$attemptarray[($i*$number_of_subproblems)+$next]['problembankattemptid']
 												= $problembankattemptid;
-					$attemptarray[($i*$number_of_subproblems)+$index]['problemid']
+					$attemptarray[($i*$number_of_subproblems)+$next]['problemid']
 												= $problemid;
-					$attemptarray[($i*$number_of_subproblems)+$index]['problemexpression']
+					$attemptarray[($i*$number_of_subproblems)+$next]['problemexpression']
 												= $attemptarrayelement;
-					$attemptarray[($i*$number_of_subproblems)+$index]['atomicvariablesvalue']
+					$attemptarray[($i*$number_of_subproblems)+$next]['atomicvariablesvalue']
 												= $string_transformed;
-					$attemptarray[($i*$number_of_subproblems)+$index]['inputvalue']
+					$attemptarray[($i*$number_of_subproblems)+$next]['inputvalue']
 												= -1;
-					$attemptarray[($i*$number_of_subproblems)+$index]['correctvalue']
-												=  $correct_table['values'][$index][$i];
-					$attemptarray[($i*$number_of_subproblems)+$index]['subproblemid']
-												=  $index+1;
+					$attemptarray[($i*$number_of_subproblems)+$next]['correctvalue']
+												=  $correct_table['values'][$next][$i];
+					$attemptarray[($i*$number_of_subproblems)+$next]['subproblemid']
+												=  $next+1;
 				}
 			}		
 		try {

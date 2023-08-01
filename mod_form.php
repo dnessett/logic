@@ -65,6 +65,14 @@ class mod_logic_mod_form extends moodleform_mod {
         } else {
             $this->add_intro_editor();
         }
+                
+        // Select Problem Mode
+        
+		$mode = array();
+        $mode['assignment'] = get_string('assignment', 'mod_logic');
+        $mode['practice'] = get_string('practice', 'mod_logic');      
+        
+        $mform->addElement('select', 'mode', get_string('mode', 'mod_logic'), $mode);
         
         // Select Logic Tool
         
@@ -73,7 +81,7 @@ class mod_logic_mod_form extends moodleform_mod {
         $tools['truthtree'] = get_string('truthtree', 'mod_logic');
 		$tools['derivation'] = get_string('derivation', 'mod_logic');      
         
-        $mform->addElement('select', 'logictool', get_string('logictool', 'logic'), $tools);
+        $mform->addElement('select', 'logictool', get_string('logictool', 'mod_logic'), $tools);
         
         // Text area for logic expressions
         
