@@ -116,6 +116,24 @@ function logic_delete_instance($id) {
     return true;
 }
 
+function array_flatten($array) {
+
+	$result = array();
+	$n = count($array);
+    $offset = 0;
+
+	for($i = 0; $i < $n; $i++) {
+        $start = array_key_first($array[$i]);
+        $m = count($array[$i]);
+		for ($j = $start; $j < $m+$start; $j++) {
+			$result[($offset)+($j-$start)] = $array[$i][$j-$start];
+		}
+        $offset = $offset + $m;
+    }
+
+	return $result;
+}
+
 function logic_lock() {
 
 $file = __DIR__  . "/lockfile.txt";

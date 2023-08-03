@@ -500,6 +500,8 @@ class logic_table_data {
 			case "truthtable":
 
 				// Loop over the problem ids in the problemidstring
+				
+				$attemptarrayelement = array(array());
 					
 				foreach($problemidarray as $key => $problemid) {
 							
@@ -532,8 +534,11 @@ class logic_table_data {
 					// flatten $attemptarrayelement into a single array and store 
        				// the result in table data.
 					
-					$attemptarray = call_user_func_array('array_merge',
-														  $attemptarrayelement); 
+//					$attemptarray = call_user_func_array('array_merge',
+//														  $attemptarrayelement);
+
+                                
+					$attemptarray = array_flatten($attemptarrayelement);
 					$this->attempt_data['attemptarray'] = $attemptarray;
 					
 			break;
@@ -615,7 +620,8 @@ class logic_table_data {
 			$string_transformed = str_replace($zero_one, $FT, $string);
 													   
 			foreach($logicexpressionparts as $next => $attemptarrayelement) {
-													
+
+					$attemptarray[($i*$number_of_subproblems)+$next] = array();
 					$attemptarray[($i*$number_of_subproblems)+$next]['problembankattemptid']
 												= $problembankattemptid;
 					$attemptarray[($i*$number_of_subproblems)+$next]['problemid']

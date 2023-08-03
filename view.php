@@ -53,6 +53,29 @@ if ($id) {
 		print_error('invalidcoursemodule');
 	}
 }
+
+// temporary debug code
+
+$array_first = array ("one" => 1, "two" => 2, "three" => 3, "four" => 4);
+$array_second = array ("five" => 5, "six" => 6, "seven" => 7, "eight" => 8);
+$array_third = array ("nine" => 9, "ten" => 10, "eleven" => 11, "twelve" => 12);
+
+echo "\n\n";
+
+$array_double = array(array());
+$array_double[0] = $array_first;
+$array_double[1] = $array_second;
+$array_double[2] = $array_third;
+
+var_dump($array_double);
+
+$DB->insert_records('logic_test_dbbug', $array_double);
+
+$table_records = $DB->get_records('logic_test_dbbug');
+
+var_dump($table_records);
+
+return;
 	
 // Set page URL
 
@@ -306,29 +329,40 @@ function change_truthtable_data($table_data) {
 
 function update_table_data_input_values_from_POST(&$attempt_array) {
 
-	$temp_obj = new stdClass();
-	
 	for ($i=0; $i<count($attempt_array); $i++) {
-	
-		// Use of $temp_pbj required to work around a bug in PHP
-	        
-        $temp_obj = (object) $attempt_array[$i];
-		
-		$interpretation = $temp_obj->atomicvariablesvalue;
+/*	        
+		$interpretation = $attempt_array[$i]->atomicvariablesvalue;
 		
         // Strip whitespace from $interpretation
             
         $interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
         
-		$problem_id = $temp_obj->problemid;
-		$subproblem_id = $temp_obj->subproblemid;
+		$problem_id = $attempt_array[$i]->problemid;
+		$subproblem_id = $attempt_array[$i]->subproblemid;
 		$select_tag_name = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
                 
         // Strip newline from $select_name
             
         $select_name = preg_replace('~[\r\n]+~', '', $select_tag_name);
         
-        $temp_obj->inputvalue = $_POST[$select_tag_name];
+		$attempt_array[$i]->inputvalue = $_POST[$select_tag_name];
+*/
+
+		$interpretation = $attempt_array[$i]['atomicvariablesvalue'];
+		
+        // Strip whitespace from $interpretation
+            
+        $interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
+        
+		$problem_id = $attempt_array[$i]['problemid'];
+		$subproblem_id = $attempt_array[$i]['subproblemid'];
+		$select_tag_name = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
+                
+        // Strip newline from $select_name
+            
+        $select_name = preg_replace('~[\r\n]+~', '', $select_tag_name);
+        
+		$attempt_array[$i]['inputvalue']= $_POST[$select_tag_name];
 	}
 	return;
 }
@@ -658,18 +692,12 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 }
 
 function generate_select_tag_name_array($table_data) {
-
-	$temp_opj = new stdClass();
 	
 	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
-	
-		// Use of temp_obj required to work around a bug in PHP
-	
-		$temp_obj = (object) $table_data->attempt_data['attemptarray'][$i];
-		
-		$interpretation = $temp_obj->atomicvariablesvalue;
-		$problem_id = $temp_obj->problemid;
-		$subproblem_id = $temp_obj->subproblemid;
+			
+		$interpretation = $table_data->attempt_data['attemptarray'][$i]['atomicvariablesvalue'];
+		$problem_id = $table_data->attempt_data['attemptarray'][$i]['problemid'];
+		$subproblem_id = $table_data->attempt_data['attemptarray'][$i]['subproblemid'];
 		$select_tag_name_array[$i] = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
 	
 	}
