@@ -54,29 +54,6 @@ if ($id) {
 	}
 }
 
-// temporary debug code
-
-$array_first = array ("one" => 1, "two" => 2, "three" => 3, "four" => 4);
-$array_second = array ("five" => 5, "six" => 6, "seven" => 7, "eight" => 8);
-$array_third = array ("nine" => 9, "ten" => 10, "eleven" => 11, "twelve" => 12);
-
-echo "\n\n";
-
-$array_double = array(array());
-$array_double[0] = $array_first;
-$array_double[1] = $array_second;
-$array_double[2] = $array_third;
-
-var_dump($array_double);
-
-$DB->insert_records('logic_test_dbbug', $array_double);
-
-$table_records = $DB->get_records('logic_test_dbbug');
-
-var_dump($table_records);
-
-return;
-	
 // Set page URL
 
 $PAGE->set_url('/mod/logic/view.php', array('id' => $cm->id));
@@ -87,7 +64,7 @@ require_login($course, false, $cm);
 $context = context_module::instance($cm->id);
 require_capability('mod/logic:view', $context);
 
-// Create $percentage in case the grade can be calculated automatically and displayed
+// Create $percentage so grade can be calculated automatically and displayed
 // on the result page of a Submit request.
 
 $percentage = 0;
@@ -330,7 +307,7 @@ function change_truthtable_data($table_data) {
 function update_table_data_input_values_from_POST(&$attempt_array) {
 
 	for ($i=0; $i<count($attempt_array); $i++) {
-/*	        
+
 		$interpretation = $attempt_array[$i]->atomicvariablesvalue;
 		
         // Strip whitespace from $interpretation
@@ -346,23 +323,6 @@ function update_table_data_input_values_from_POST(&$attempt_array) {
         $select_name = preg_replace('~[\r\n]+~', '', $select_tag_name);
         
 		$attempt_array[$i]->inputvalue = $_POST[$select_tag_name];
-*/
-
-		$interpretation = $attempt_array[$i]['atomicvariablesvalue'];
-		
-        // Strip whitespace from $interpretation
-            
-        $interpretation = preg_replace('~[\r\n]+~', '', $interpretation);
-        
-		$problem_id = $attempt_array[$i]['problemid'];
-		$subproblem_id = $attempt_array[$i]['subproblemid'];
-		$select_tag_name = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
-                
-        // Strip newline from $select_name
-            
-        $select_name = preg_replace('~[\r\n]+~', '', $select_tag_name);
-        
-		$attempt_array[$i]['inputvalue']= $_POST[$select_tag_name];
 	}
 	return;
 }
@@ -390,8 +350,8 @@ function compute_percentage_of_right_answers($table_data) {
 	$answers = count($table_data->attempt_data['attemptarray']);
 	if($table_data->logictool == "truthtable") {
 		for($i=0; $i<$answers; $i++) {
-			if(((array)$table_data->attempt_data['attemptarray'][$i])['inputvalue'] !=
-			   ((array)$table_data->attempt_data['attemptarray'][$i])['correctvalue']) {
+			if($table_data->attempt_data['attemptarray'][$i]->inputvalue !=
+			   $table_data->attempt_data['attemptarray'][$i]->correctvalue) {
 					$errors += 1;
 			}
 		}	
@@ -598,8 +558,8 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
                     			[$offset+($x*$number_of_subproblems)+$i];
                     $select_name_string = preg_replace('~[\r\n]+~', '', $select_name_string);
                     
-                    $selected_option = ((array) $table_data->attempt_data['attemptarray']
-                    				[$offset+($x*$number_of_subproblems)+$i])['inputvalue'];
+                    $selected_option = $table_data->attempt_data['attemptarray']
+                    				[$offset+($x*$number_of_subproblems)+$i]->inputvalue;
 
                     if($selected_option == -1) {
                     	$options = '
@@ -631,10 +591,10 @@ function create_html_for_truthtable($table_data, $display_results, $percentage) 
 					// output the result for the display request. Get the input
 					// value and the correct value.
 					
-					$select_input = ((array)$table_data->attempt_data['attemptarray']
-									[$offset+($x*$number_of_subproblems)+$i])['inputvalue'];
-                    $correct_value = ((array)$table_data->attempt_data['attemptarray']
-                    				[$offset+($x*$number_of_subproblems)+$i])['correctvalue'];
+					$select_input = $table_data->attempt_data['attemptarray']
+									[$offset+($x*$number_of_subproblems)+$i]->inputvalue;
+                    $correct_value = $table_data->attempt_data['attemptarray']
+                    				[$offset+($x*$number_of_subproblems)+$i]->correctvalue;
                     
                     // If inputvalue == -1, make it the opposite of correctvalue, so
                     // the following test will always result in a red colored value
@@ -695,9 +655,9 @@ function generate_select_tag_name_array($table_data) {
 	
 	for ($i=0; $i<count($table_data->attempt_data['attemptarray']); $i++) {
 			
-		$interpretation = $table_data->attempt_data['attemptarray'][$i]['atomicvariablesvalue'];
-		$problem_id = $table_data->attempt_data['attemptarray'][$i]['problemid'];
-		$subproblem_id = $table_data->attempt_data['attemptarray'][$i]['subproblemid'];
+		$interpretation = $table_data->attempt_data['attemptarray'][$i]->atomicvariablesvalue;
+		$problem_id = $table_data->attempt_data['attemptarray'][$i]->problemid;
+		$subproblem_id = $table_data->attempt_data['attemptarray'][$i]->subproblemid;
 		$select_tag_name_array[$i] = $interpretation . '-' . $problem_id . '-' . $subproblem_id;
 	
 	}

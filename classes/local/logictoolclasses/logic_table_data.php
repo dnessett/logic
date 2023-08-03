@@ -218,7 +218,6 @@ class logic_table_data {
                                                                       $problemidstring);
        	
         	// Insert the problem bank object into the problem bank table
-            
             // First create the necessary dataobj
             
             $problembankobj = new \stdClass();
@@ -526,7 +525,7 @@ class logic_table_data {
         				
         			} else {
         				
-        			$attemptarrayelement[$key] = (array) $ttable_attempt;
+        			$attemptarrayelement[$key] = $ttable_attempt;
         				
         			}
 				}
@@ -534,11 +533,9 @@ class logic_table_data {
 					// flatten $attemptarrayelement into a single array and store 
        				// the result in table data.
 					
-//					$attemptarray = call_user_func_array('array_merge',
-//														  $attemptarrayelement);
+					$attemptarray = call_user_func_array('array_merge',
+														  $attemptarrayelement);
 
-                                
-					$attemptarray = array_flatten($attemptarrayelement);
 					$this->attempt_data['attemptarray'] = $attemptarray;
 					
 			break;
@@ -579,8 +576,7 @@ class logic_table_data {
     	
     	require_once(__DIR__ . "/compute_correct_ttable_values.php");
     	
-    	$attemptarray = array(array());
-        $attemptarrayelement = array(array());
+    	$attemptarray = array();
         $FT = array("F", "T");
         $zero_one = array("0", "1");
 		$logicexpressionparts = explode(",", $problemexpression);
@@ -618,24 +614,19 @@ class logic_table_data {
 			$string = str_pad(decbin($i), $length, 0, STR_PAD_LEFT) . PHP_EOL;
 			
 			$string_transformed = str_replace($zero_one, $FT, $string);
+			
+			$obj = new \stdClass();
 													   
 			foreach($logicexpressionparts as $next => $attemptarrayelement) {
-
-					$attemptarray[($i*$number_of_subproblems)+$next] = array();
-					$attemptarray[($i*$number_of_subproblems)+$next]['problembankattemptid']
-												= $problembankattemptid;
-					$attemptarray[($i*$number_of_subproblems)+$next]['problemid']
-												= $problemid;
-					$attemptarray[($i*$number_of_subproblems)+$next]['problemexpression']
-												= $attemptarrayelement;
-					$attemptarray[($i*$number_of_subproblems)+$next]['atomicvariablesvalue']
-												= $string_transformed;
-					$attemptarray[($i*$number_of_subproblems)+$next]['inputvalue']
-												= -1;
-					$attemptarray[($i*$number_of_subproblems)+$next]['correctvalue']
-												=  $correct_table['values'][$next][$i];
-					$attemptarray[($i*$number_of_subproblems)+$next]['subproblemid']
-												=  $next+1;
+					
+					$obj->problembankattemptid = $problembankattemptid;
+					$obj->problemid = $problemid;
+					$obj->subproblemid =  $next+1;
+					$obj->problemexpression= $attemptarrayelement;
+					$obj->atomicvariablesvalue = $string_transformed;
+					$obj->inputvalue = -1;
+					$obj->correctvalue =  $correct_table['values'][$next][$i];
+					$attemptarray[($i*$number_of_subproblems)+$next] = clone $obj;
 				}
 			}		
 		try {
