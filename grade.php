@@ -17,7 +17,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Redirects the user to either a logic or to the logic statistics
+ * Redirects the user to view.php
  *
  * @package   mod_logic
  * @category  grade

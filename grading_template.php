@@ -81,20 +81,11 @@ function logic_grade_item_update($logic, $grades=NULL) {
         require_once($CFG->libdir.'/gradelib.php');
     }
 
-    $params = array('itemname'=>$logic->name, 'idnumber'=>$logic->cmid);
-
-    if (!$logic->assessed or $logic->scale == 0) {
-        $params['gradetype'] = GRADE_TYPE_NONE;
-
-    } else if ($logic->scale > 0) {
-        $params['gradetype'] = GRADE_TYPE_VALUE;
-        $params['grademax']  = $logic->scale;
-        $params['grademin']  = 0;
-
-    } else if ($logic->scale < 0) {
-        $params['gradetype'] = GRADE_TYPE_SCALE;
-        $params['scaleid']   = -$logic->scale;
-    }
+    $params = array('itemname'=>$logic->name, 'idnumber'=>$logic->cm_id);
+    
+	$params['gradetype'] = GRADE_TYPE_VALUE;
+	$params['grademax']  = 100;
+	$params['grademin']  = 0;
 
     if ($grades  === 'reset') {
         $params['reset'] = true;
@@ -138,8 +129,7 @@ function logic_update_grades($logic, $userid=0, $nullifnone=true) {
  *
  * @category grade
  * @uses GRADE_TYPE_VALUE
- * @uses GRADE_TYPE_NONE
- * @param object $logic object with extra cmid
+ * @param object $logic object
  * @param array|object $grades optional array/object of grade(s); 'reset' means reset grades in gradebook
  * @return int 0 if ok, error code otherwise
  */
@@ -149,38 +139,27 @@ function logic_grade_item_update($logic, $grades=null) {
         require_once($CFG->libdir.'/gradelib.php');
     }
 
-    if (property_exists($logic, 'cmid')) { //it may not be always present
-        $params = array('itemname'=>$logic->name, 'idnumber'=>$logic->cmid);
+    if (property_exists($logic, 'cm_id')) { //it may not be always present
+        $params = array('itemname'=>$logic->name, 'idnumber'=>$logic->cm_id);
     } else {
         $params = array('itemname'=>$logic->name);
     }
 
     if (!$logic->practice and $logic->grade > 0) {
         $params['gradetype']  = GRADE_TYPE_VALUE;
-        $params['grademax']   = $logic->grade;
+        $params['grademax']   = 100;
         $params['grademin']   = 0;
-    } else if (!$logic->practice and $logic->grade < 0) {
-        $params['gradetype']  = GRADE_TYPE_SCALE;
-        $params['scaleid']   = -$logic->grade;
-
-        // Make sure current grade fetched correctly from $grades
-        $currentgrade = null;
-        if (!empty($grades)) {
-            if (is_array($grades)) {
-                $currentgrade = reset($grades);
-            } else {
-                $currentgrade = $grades;
-            }
-        }
-
-        // When converting a score to a scale, use scale's grade maximum to calculate it.
-        if (!empty($currentgrade) && $currentgrade->rawgrade !== null) {
-            $grade = grade_get_grades($logic->course, 'mod', 'logic', $logic->id, $currentgrade->userid);
-            $params['grademax']   = reset($grade->items)->grademax;
-        }
-    } else {
-        $params['gradetype']  = GRADE_TYPE_NONE;
     }
+
+	// Make sure current grade fetched correctly from $grades
+	$currentgrade = null;
+	if (!empty($grades)) {
+		if (is_array($grades)) {
+			$currentgrade = reset($grades);
+		} else {
+			$currentgrade = $grades;
+		}
+	}
 
     if ($grades  === 'reset') {
         $params['reset'] = true;

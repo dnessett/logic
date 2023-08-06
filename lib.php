@@ -48,15 +48,6 @@
     $completion->set_module_viewed($cm);
 }
 
-function logic_supports($feature) {
-    switch ($feature) {
-        case FEATURE_MOD_INTRO:
-            return true;
-        default:
-            return null;
-    }
-}
-
 /**
  * Saves a new instance of the mod_logic into the database.
  *
@@ -132,9 +123,8 @@ fclose($fp);
 
 }
 
-// functions logic_supports(), logic_grade_item_update(), logic_update_grades(),
-// and logic_grade_item_update() are taken from mod/lesson/lib.php, then modified
-// for logic
+// functions logic_supports(), logic_update_grades and logic_grade_item_update()
+// are taken from mod/lesson/lib.php, then modified for logic
 
 /**
  * Return the list if Moodle features this module supports
@@ -145,40 +135,28 @@ fclose($fp);
  */
 function logic_supports($feature) {
     switch($feature) {
-        case FEATURE_GRADE_HAS_GRADE:         return true;
+        case FEATURE_MOD_INTRO: return true;
+        case FEATURE_GRADE_HAS_GRADE: return true;
 
         default: return null;
     }
 }
 
 /**
- * Create grade item for given assignment.
+ * Update grades in central gradebook
  *
- * @param stdClass $logic record with extra cmid
- * @param array $grades optional array/object of grade(s); 
- * 'reset' means reset grades in gradebook
- * @return int 0 if ok, error code otherwise
+ * @category grade
+ * @param object $logic
+ * @param int $userid specific user only, 0 means all
+ * @param bool $nullifnone
  */
-function logic_grade_item_update($logic, $grades=NULL) {
-    global $CFG;
+function logic_update_grades($logic, $userid=0, $nullifnone=true) {
+    global $CFG, $DB;
+    require_once($CFG->libdir.'/gradelib.php');
     
-    if (!function_exists('grade_update')) { //workaround for buggy PHP versions
-        require_once($CFG->libdir.'/gradelib.php');
-    }
+    // Updating all user's grades is not supported at this time in the logic module.
 
-    $params = array('itemname'=>$logic->name, 'idnumber'=>$logic->cm_id);
-    
-	$params['gradetype'] = GRADE_TYPE_VALUE;
-	$params['grademax']  = 100;
-	$params['grademin']  = 0;
-
-    if ($grades  === 'reset') {
-        $params['reset'] = true;
-        $grades = NULL;
-    }
-
-    return grade_update('mod/logic', $logic->course, 'mod', 'logic', $logic->id,
-    																0, $grades, $params);
+	return;
 }
 
 /**
@@ -202,21 +180,11 @@ function logic_grade_item_update($logic, $grades=null) {
         $params = array('itemname'=>$logic->name);
     }
 
-    if (!$logic->practice and $logic->grade > 0) {
+    if ($logic->mode != 'practice') {
         $params['gradetype']  = GRADE_TYPE_VALUE;
         $params['grademax']   = 100;
         $params['grademin']   = 0;
-    }
-
-	// Make sure current grade fetched correctly from $grades
-	$currentgrade = null;
-	if (!empty($grades)) {
-		if (is_array($grades)) {
-			$currentgrade = reset($grades);
-		} else {
-			$currentgrade = $grades;
-		}
-	}
+    } else { return; }
 
     if ($grades  === 'reset') {
         $params['reset'] = true;
@@ -228,16 +196,10 @@ function logic_grade_item_update($logic, $grades=null) {
         } else if (array_key_exists('userid', $grades)) {
             $grades = array($grades['userid'] => $grades);
         }
+        
         foreach ($grades as $key => $grade) {
             if (!is_array($grade)) {
                 $grades[$key] = $grade = (array) $grade;
-            }
-            //check raw grade isnt null otherwise we erroneously insert a grade of 0
-            if ($grade['rawgrade'] !== null) {
-                $grades[$key]['rawgrade'] = ($grade['rawgrade'] * $params['grademax'] / 100);
-            } else {
-                //setting rawgrade to null just in case user is deleting a grade
-                $grades[$key]['rawgrade'] = null;
             }
         }
     }

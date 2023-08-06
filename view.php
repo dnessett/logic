@@ -108,9 +108,15 @@ if(!empty($_POST)) {
 	// $percentage will be printed at the end of the html output when a
 	// Submit post is processed.
 	
-	} else {
-		$message = 'Internal error in ' . 'mod/logic/view.php. Invalid $_POST type';
-		throw new \coding_exception($message);
+	if($table_data->practice == false) {
+	
+		$grade = new stdClass();
+		$grade->userid   = $table_data->user_id;
+		$grade->rawgrade = $percentage;
+	
+		logic_grade_item_update($logic, $grade);
+
+		}
 	}
 	
 } else {
